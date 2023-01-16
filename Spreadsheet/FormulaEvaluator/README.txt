@@ -19,5 +19,4 @@ None
 
 
 **References:**
-My Brain
-What I learned in lecture
+https://stackoverflow.com/questions/23091427/regex-for-one-or-more-letters-digits-and-zero-or-more-spaces

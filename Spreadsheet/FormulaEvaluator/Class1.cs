@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using System.Text.RegularExpressions;
 
 namespace FormulaEvaluator
@@ -33,15 +34,15 @@ namespace FormulaEvaluator
             {
                 curToken = tokens[pos].Trim();
 
-                if (curToken.StartsWith("a-zA-Z") && curToken.Contains("0-9"))
+                if (Regex.IsMatch(curToken, "[a-zA-Z]+[0-9]+"))
                 {
-                    if (operators.Peek() == "*")
+                    if (operators.Count != 0 && operators.Peek() == "*")
                     {
                         int leftHandSide = values.Pop();
                         operators.Pop();
                         values.Push(leftHandSide * variableEvaluator(curToken));
                     }
-                    else if (operators.Peek() == "/")
+                    else if (operators.Count != 0 && operators.Peek() == "/")
                     {
                         int leftHandSide = values.Pop();
                         operators.Pop();
@@ -52,16 +53,16 @@ namespace FormulaEvaluator
                         values.Push(variableEvaluator(curToken));
                     }
                 }
-                else if (curToken.Contains("0-9"))
+                else if (int.TryParse(curToken, out int result))
                 {
-                    int rightHandSide = int.Parse(curToken);
-                    if (operators.Peek() == "*")
+                    int rightHandSide = result;
+                    if (operators.Count != 0 && operators.Peek() == "*")
                     {
                         int leftHandSide = values.Pop();
                         operators.Pop();
                         values.Push(leftHandSide * rightHandSide);
                     }
-                    else if (operators.Peek() == "/")
+                    else if (operators.Count != 0 && operators.Peek() == "/")
                     {
                         int leftHandSide = values.Pop();
                         operators.Pop();
@@ -74,14 +75,14 @@ namespace FormulaEvaluator
                 }
                 else if (curToken == "+" || curToken == "-")
                 {
-                    if (operators.Peek() == "+")
+                    if (operators.Count != 0 && operators.Peek() == "+")
                     {
                         int rightHandSide = values.Pop();
                         int leftHandSide = values.Pop();
                         operators.Pop();
                         values.Push(leftHandSide + rightHandSide);
                     }
-                    else if (operators.Peek() == "-")
+                    else if (operators.Count != 0 && operators.Peek() == "-")
                     {
                         int rightHandSide = values.Pop();
                         int leftHandSide = values.Pop();
@@ -96,11 +97,57 @@ namespace FormulaEvaluator
                 }
                 else if (curToken == ")")
                 {
+                    if (operators.Count != 0 && operators.Peek() == "+")
+                    {
+                        int leftHandSide = values.Pop();
+                        operators.Pop();
+                        int rightHandSide = values.Pop();
+                        values.Push(leftHandSide + rightHandSide);
+                    }
+                    else if (operators.Count != 0 && operators.Peek() == "-")
+                    {
+                        int rightHandSide = values.Pop();
+                        operators.Pop();
+                        int leftHandSide = values.Pop();
+                        values.Push(leftHandSide - rightHandSide);
+                    }
+                    operators.Pop();
 
+                    if (operators.Count != 0 && operators.Peek() == "*")
+                    {
+                        int rightHandSide = values.Pop();
+                        operators.Pop();
+                        int leftHandSide = values.Pop();
+                        values.Push(leftHandSide * rightHandSide);
+                    }
+                    else if (operators.Count != 0 && operators.Peek() == "/")
+                    {
+                        int rightHandSide = values.Pop();
+                        operators.Pop();
+                        int leftHandSide = values.Pop();
+                        values.Push(leftHandSide / rightHandSide);
+                    }
                 }
             }
-
-            return 0;
+            if (operators.Count == 0)
+                return values.Pop();
+            else
+            {
+                if (operators.Peek() == "+")
+                {
+                    int rightHandSide = values.Pop();
+                    operators.Pop();
+                    int leftHandSide = values.Pop();
+                    return (leftHandSide + rightHandSide);
+                }
+                else
+                {
+                    int rightHandSide = values.Pop();
+                    operators.Pop();
+                    int leftHandSide = values.Pop();
+                    return (leftHandSide - rightHandSide);
+                }
+            }
         }
     }
 }
