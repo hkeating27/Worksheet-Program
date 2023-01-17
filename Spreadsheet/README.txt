@@ -10,8 +10,11 @@
 
 
 **Overview of Spreadsheet Functionality:**
-This Spreadsheet program is currently capable of nothing.
+This Spreadsheet program is currently capable of taking in a mathematical infix expression and a delegate
+that takes a string and returns an int. The program can then use those two parameters to solve the given 
+expression as long as it is valid. A valid expression is defined above the Evaluate method in the 
+FormulaEvaluator namespace.
 
 
-**Assignment 01 Hours Worked:** 
-**Total Hours Worked:**
+**Assignment 01 Hours Worked:** 10
+**Total Hours Worked:** 10

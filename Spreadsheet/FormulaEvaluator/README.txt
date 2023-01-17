@@ -20,3 +20,4 @@ None
 
 **References:**
 https://stackoverflow.com/questions/23091427/regex-for-one-or-more-letters-digits-and-zero-or-more-spaces
+https://learn.microsoft.com/en-us/dotnet/standard/base-types/regular-expression-language-quick-reference
