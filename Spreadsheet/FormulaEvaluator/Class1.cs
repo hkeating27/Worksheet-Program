@@ -13,7 +13,7 @@ namespace FormulaEvaluator
     public static class Evaluator
     {
         // Field
-        public delegate int Lookup(String variable_name); //A delegate that allows the Evaluate method to assign values to variables
+        public delegate int Lookup(String variableName); //A delegate that allows the Evaluate method to assign values to variables
         private static Stack<String> operators = new Stack<String>(); //Creates a stack that will hold all of the operators in the given expression
         private static Stack<int> values = new Stack<int>(); //Creates a stack that will hold all of the number values to be evaluated
 
@@ -36,12 +36,13 @@ namespace FormulaEvaluator
             {
                 curToken = tokens[pos].Trim(); //Ignores any whitespace in the current token
 
+                //Determines what kind of token the current token is and evaluates it
                 if (Regex.IsMatch(curToken, "[a-zA-Z]+[0-9]+"))
                 {
                     values.Push(variableEvaluator(curToken));
                     multiplyOrDivide();
                 }
-                else if (int.TryParse(curToken, out int result)) //Determines if the current token is an integer
+                else if (int.TryParse(curToken, out int result))
                 {
                     values.Push(result);
                     multiplyOrDivide();
@@ -84,6 +85,7 @@ namespace FormulaEvaluator
                     return (leftHandSide - rightHandSide);
                 }
             }
+            illegalExpression();
         }
         
         /// <summary>
@@ -94,6 +96,7 @@ namespace FormulaEvaluator
         {
             if (operators.Count != 0 && operators.Peek() == "+")
             {
+                illegalExpression();
                 int rightHandSide = values.Pop();
                 int leftHandSide = values.Pop();
                 operators.Pop();
@@ -101,6 +104,7 @@ namespace FormulaEvaluator
             }
             else if (operators.Count != 0 && operators.Peek() == "-")
             {
+                illegalExpression();
                 int rightHandSide = values.Pop();
                 int leftHandSide = values.Pop();
                 operators.Pop();
@@ -116,6 +120,7 @@ namespace FormulaEvaluator
         {
             if (operators.Count != 0 && operators.Peek() == "*")
             {
+                illegalExpression();
                 int rightHandSide = values.Pop();
                 int leftHandSide = values.Pop();
                 operators.Pop();
@@ -123,10 +128,45 @@ namespace FormulaEvaluator
             }
             else if (operators.Count != 0 && operators.Peek() == "/")
             {
+                illegalExpression();
                 int rightHandSide = values.Pop();
+                divisionByZero(rightHandSide);
                 int leftHandSide = values.Pop();
                 operators.Pop();
                 values.Push(leftHandSide / rightHandSide);
+            }
+        }
+
+        /// <summary>
+        /// Determines if a division by 0 will occur
+        /// </summary>
+        private static void divisionByZero(int value)
+        {
+            try
+            {
+                if (value == 0)
+                    throw new DivideByZeroException("A division by 0 has occured. Division by 0 is not allowed.");
+            }
+            catch
+            {
+                Console.WriteLine("A division by 0 has occured. Division by 0 is not allowed.");
+            }
+        }
+
+        /// <summary>
+        /// Determines if there are enough items in the values stack
+        /// </summary>
+        private static void illegalExpression()
+        {
+            try
+            {
+                if (values.Count <= 1)
+                    throw new ArgumentException();
+            }
+            catch
+            {
+                Console.WriteLine("The given equation is invalid. See header comment for " +
+                    "equation requirements.");
             }
         }
     }
