@@ -37,7 +37,7 @@ namespace FormulaEvaluator
                 curToken = tokens[pos].Trim(); //Ignores any whitespace in the current token
 
                 //Determines what kind of token the current token is and evaluates it
-                if (Regex.IsMatch(curToken, "[a-zA-Z]+[0-9]+"))
+                if (Regex.IsMatch(curToken, "^[a-zA-Z]+[0-9]$+") && !Char.IsLetter(curToken[curToken.Length - 1]))
                 {
                     values.Push(variableEvaluator(curToken));
                     multiplyOrDivide();
@@ -70,6 +70,7 @@ namespace FormulaEvaluator
                 return values.Pop();
             else
             {
+                toManyOperators();
                 if (operators.Peek() == "+")
                 {
                     int rightHandSide = values.Pop();
@@ -85,7 +86,6 @@ namespace FormulaEvaluator
                     return (leftHandSide - rightHandSide);
                 }
             }
-            illegalExpression();
         }
         
         /// <summary>
@@ -96,7 +96,7 @@ namespace FormulaEvaluator
         {
             if (operators.Count != 0 && operators.Peek() == "+")
             {
-                illegalExpression();
+                notEnoughValues();
                 int rightHandSide = values.Pop();
                 int leftHandSide = values.Pop();
                 operators.Pop();
@@ -104,7 +104,7 @@ namespace FormulaEvaluator
             }
             else if (operators.Count != 0 && operators.Peek() == "-")
             {
-                illegalExpression();
+                notEnoughValues();
                 int rightHandSide = values.Pop();
                 int leftHandSide = values.Pop();
                 operators.Pop();
@@ -120,7 +120,7 @@ namespace FormulaEvaluator
         {
             if (operators.Count != 0 && operators.Peek() == "*")
             {
-                illegalExpression();
+                notEnoughValues();
                 int rightHandSide = values.Pop();
                 int leftHandSide = values.Pop();
                 operators.Pop();
@@ -128,45 +128,61 @@ namespace FormulaEvaluator
             }
             else if (operators.Count != 0 && operators.Peek() == "/")
             {
-                illegalExpression();
+                notEnoughValues();
                 int rightHandSide = values.Pop();
-                divisionByZero(rightHandSide);
                 int leftHandSide = values.Pop();
                 operators.Pop();
-                values.Push(leftHandSide / rightHandSide);
+                divisionByZero(leftHandSide, rightHandSide);
             }
         }
 
         /// <summary>
         /// Determines if a division by 0 will occur
         /// </summary>
-        private static void divisionByZero(int value)
+        private static void divisionByZero(int leftHandSide, int rightHandSide)
         {
             try
             {
-                if (value == 0)
-                    throw new DivideByZeroException("A division by 0 has occured. Division by 0 is not allowed.");
+                values.Push(leftHandSide / rightHandSide);
             }
-            catch
+            catch (DivideByZeroException)
             {
-                Console.WriteLine("A division by 0 has occured. Division by 0 is not allowed.");
+                Console.WriteLine("A division by 0 has occured. This is not allowed");
+                Environment.Exit(1);
             }
         }
 
         /// <summary>
-        /// Determines if there are enough items in the values stack
+        /// Determines if there are enough values in the given expression
         /// </summary>
-        private static void illegalExpression()
+        private static void notEnoughValues()
         {
             try
             {
                 if (values.Count <= 1)
                     throw new ArgumentException();
-            }
-            catch
+            } 
+            catch (ArgumentException)
             {
-                Console.WriteLine("The given equation is invalid. See header comment for " +
-                    "equation requirements.");
+                Console.WriteLine("The given expression is invalid.");
+                Environment.Exit(1);
+            }
+        }
+
+        /// <summary>
+        /// Determines if there are to many operators in the given expression
+        /// </summary>
+        private static void toManyOperators()
+        {
+            try
+            {
+                if (operators.Count > 1)
+                    throw new ArgumentException();
+            }
+            catch (ArgumentException)
+            {
+                Console.WriteLine("The given expression is invalid.");
+                Environment.Exit(1);
             }
         }
     }

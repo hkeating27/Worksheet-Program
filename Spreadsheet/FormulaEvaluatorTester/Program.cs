@@ -11,6 +11,12 @@ namespace FormulaEvaluatorTester
             Console.WriteLine(EvaluatorWorksSimpleEquationWithVar());
             Console.WriteLine(EvaluatorWorksComplexEquation());
             Console.WriteLine(EvaluatorWorksComplexEquationWithVar());
+            Console.WriteLine(EvaluatorWorksOrderOfOpsSimple());
+            Console.WriteLine(EvaluatorWorksOrderOfOpsComplex());
+            Console.WriteLine(EvaluatorWorksImpliedDivisionByZero());
+            Console.WriteLine(EvaluatorWorksDivisionByZero());
+            Console.WriteLine(EvaluatorWorksIllegalParenthesis());
+            Console.WriteLine(EvaluatorWorksWithIllegalVar());
         }
 
         private static string EvaluatorWorksSimpleEquation1()
@@ -56,6 +62,60 @@ namespace FormulaEvaluatorTester
                 return "correct";
             else
                 return "wrong";
+        }
+
+        private static string EvaluatorWorksOrderOfOpsSimple()
+        {
+            int value = Evaluator.Evaluate("8 + 2 * 3", Lookup);
+            if (value == 14)
+                return "correct";
+            else
+                return "wrong";
+        }
+
+        private static string EvaluatorWorksOrderOfOpsComplex()
+        {
+            int value = Evaluator.Evaluate("8 - 24 / 8 * 2", Lookup);
+            if (value == 2)
+                return "correct";
+            else
+                return "wrong";
+        }
+
+        private static string EvaluatorWorksWithIllegalVar()
+        {
+            int value = Evaluator.Evaluate("8 * b2a - 2", Lookup);
+            if (value == 6)
+                return "wrong";
+            else
+                return value + "";
+        }
+
+        private static string EvaluatorWorksIllegalParenthesis()
+        {
+            int value = Evaluator.Evaluate("8 - 6 / (2", Lookup);
+            if (value == 1)
+                return "wrong";
+            else
+                return value + "";
+        }
+
+        private static string EvaluatorWorksDivisionByZero()
+        {
+            int value = Evaluator.Evaluate("8/0", Lookup);
+            if (value == 8)
+                return "wrong";
+            else
+                return value + "";
+        }
+
+        private static string EvaluatorWorksImpliedDivisionByZero()
+        {
+            int value = Evaluator.Evaluate("8 / (2-a1)", Lookup);
+            if (value == 4)
+                return "wrong";
+            else
+                return value + "";
         }
 
         private static int Lookup(string name)
