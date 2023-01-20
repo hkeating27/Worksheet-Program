@@ -28,6 +28,7 @@ namespace FormulaEvaluator
         /// <returns></returns> Returns the total value of the given expression
         public static int Evaluate (String expression, Lookup variableEvaluator)
         {
+            nullExpression(expression);
             string curToken; //The token currently being evaluated
             string[] tokens = Regex.Split(expression, "(\\()|(\\))|(-)|(\\+)|(\\*)|(/)"); //Splits the tokens in the given expression into an array
 
@@ -66,11 +67,12 @@ namespace FormulaEvaluator
 
             //Determines if one of the two possible endstates have been achieved.
             //If so then a value is returned. If not then an exception is thrown.
-            if (operators.Count == 0)
+            if (operators.Count == 0 && values.Count == 1)
                 return values.Pop();
             else
             {
                 toManyOperators();
+                notEnoughValues();
                 if (operators.Peek() == "+")
                 {
                     int rightHandSide = values.Pop();
@@ -130,22 +132,24 @@ namespace FormulaEvaluator
             {
                 notEnoughValues();
                 int rightHandSide = values.Pop();
+                divisionByZero(rightHandSide);
                 int leftHandSide = values.Pop();
                 operators.Pop();
-                divisionByZero(leftHandSide, rightHandSide);
+                values.Push(leftHandSide / rightHandSide);
             }
         }
 
         /// <summary>
         /// Determines if a division by 0 will occur
         /// </summary>
-        private static void divisionByZero(int leftHandSide, int rightHandSide)
+        private static void divisionByZero(int value)
         {
             try
             {
-                values.Push(leftHandSide / rightHandSide);
+                if (value == 0)
+                    throw new ArgumentException();
             }
-            catch (DivideByZeroException)
+            catch (ArgumentException)
             {
                 Console.WriteLine("A division by 0 has occured. This is not allowed");
                 Environment.Exit(1);
@@ -182,6 +186,24 @@ namespace FormulaEvaluator
             catch (ArgumentException)
             {
                 Console.WriteLine("The given expression is invalid.");
+                Environment.Exit(1);
+            }
+        }
+
+        /// <summary>
+        /// Determines whether or not the given expression is null
+        /// </summary>
+        /// <param name="expression"></param> The expression to be evaluated
+        private static void nullExpression(string expression)
+        {
+            try
+            {
+                if (expression == null)
+                    throw new ArgumentException();
+            }
+            catch (ArgumentException)
+            {
+                Console.WriteLine("The given expression can not be null");
                 Environment.Exit(1);
             }
         }

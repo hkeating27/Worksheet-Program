@@ -13,6 +13,10 @@ namespace FormulaEvaluatorTester
             Console.WriteLine(EvaluatorWorksComplexEquationWithVar());
             Console.WriteLine(EvaluatorWorksOrderOfOpsSimple());
             Console.WriteLine(EvaluatorWorksOrderOfOpsComplex());
+            Console.WriteLine(EvaluatorWorksComplex());
+            Console.WriteLine(EvaluatorWorksWrongParenthesis());
+            Console.WriteLine(EvaluatorWorksUnaryNegative());
+            Console.WriteLine(EvaluatorWorksEmptyExpression());
             Console.WriteLine(EvaluatorWorksImpliedDivisionByZero());
             Console.WriteLine(EvaluatorWorksDivisionByZero());
             Console.WriteLine(EvaluatorWorksIllegalParenthesis());
@@ -82,6 +86,24 @@ namespace FormulaEvaluatorTester
                 return "wrong";
         }
 
+        private static string EvaluatorWorksComplex()
+        {
+            int value = Evaluator.Evaluate("((24 * 3) / 3) + (3 + (1/1)) - (4 + (4*4))", Lookup);
+            if (value == 8)
+                return "correct";
+            else
+                return "wrong";
+        }
+
+        private static string EvaluatorWorksWrongParenthesis()
+        {
+            int value = Evaluator.Evaluate("8 - )2(", Lookup);
+            if (value == 6)
+                return "wrong";
+            else
+                return  value + "";
+        }
+
         private static string EvaluatorWorksWithIllegalVar()
         {
             int value = Evaluator.Evaluate("8 * b2a - 2", Lookup);
@@ -113,6 +135,24 @@ namespace FormulaEvaluatorTester
         {
             int value = Evaluator.Evaluate("8 / (2-a1)", Lookup);
             if (value == 4)
+                return "wrong";
+            else
+                return value + "";
+        }
+
+        private static string EvaluatorWorksEmptyExpression()
+        {
+            int value = Evaluator.Evaluate("", Lookup);
+            if (value == 0)
+                return "wrong";
+            else
+                return value + "";
+        }
+
+        private static string EvaluatorWorksUnaryNegative()
+        {
+            int value = Evaluator.Evaluate("-5 * 2", Lookup);
+            if (value == -10)
                 return "wrong";
             else
                 return value + "";
