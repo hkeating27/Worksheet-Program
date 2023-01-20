@@ -3,7 +3,7 @@
 **Course:** CS 3500, University of Utah, School of Computing
 **GitHub ID:** NSwimer1321
 **Repo:** https://github.com/uofu-cs3500-spring23/spreadsheet-NSwimer1321
-**Date:** 01/20/2022 Time: 11:25 am
+**Date:** 01/20/22 Time: 11:25 am
 **Project Name:** Formula Evaluator
 **Copyright:** CS 3500 and Nathaniel Taylor - This work may not be copied for use in Academic Coursework
 
@@ -16,9 +16,8 @@ confirmed this I decided not to throw an error for it.
 
 
 **Assignment Specific Topics:**
-I don't really have any feedback, more of a question. Are we able to assume that edge cases that no
-reasonable person would hit don't need to be tested? For example, no reasonable person using a spreadsheet
-would enter a formula like: 8 * () 2 - 3.
+Can we never use a console application to test our assignments ever again? It is inefficient and
+wildly annoying.
 
 
 **Consulted Peers:**
@@ -27,9 +26,7 @@ if I had a question and asked a question myself.
 
 
 **References:**
-https://stackoverflow.com/questions/23091427/regex-for-one-or-more-letters-digits-and-zero-or-more-spaces
-https://learn.microsoft.com/en-us/dotnet/standard/base-types/regular-expression-language-quick-reference
-
+I did not use any reference besides my brain for the FormulaEvaluatorTester.
 
 
 

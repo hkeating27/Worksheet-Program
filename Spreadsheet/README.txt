@@ -1,10 +1,10 @@
 **Author:** Nathaniel Taylor
 **Partner:** None
-**Date:** 01/14/2023
+**Date Created:** 01/14/2023
 **Course:** CS 3500, University of Utah, School of Computing
 **GitHub ID:** NSwimer1321
 **Repo:** https://github.com/uofu-cs3500-spring23/spreadsheet-NSwimer1321
-**Date of Last Submission:** 01/19/2022 Time: 
+**Date of Last Submission:** 01/20/2022 Time: 11:25 am
 **Solution:** Spreadsheet
 **Copyright:** CS 3500 and Nathaniel Taylor - This work may not be copied for use in Academic Coursework
 
@@ -18,3 +18,7 @@ FormulaEvaluator namespace.
 
 **Assignment 01 Hours Worked:** 10
 **Total Hours Worked:** 10
+
+
+
+
