@@ -4,7 +4,7 @@
 **Course:** CS 3500, University of Utah, School of Computing
 **GitHub ID:** NSwimer1321
 **Repo:** https://github.com/uofu-cs3500-spring23/spreadsheet-NSwimer1321
-**Date of Last Submission:** 01/20/2022 Time: 11:25 am
+**Date of Last Submission:** 01/20/2022 Time: 12:26 am
 **Solution:** Spreadsheet
 **Copyright:** CS 3500 and Nathaniel Taylor - This work may not be copied for use in Academic Coursework
 
