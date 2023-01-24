@@ -16,7 +16,12 @@ expression as long as it is valid. A valid expression is defined above the Evalu
 FormulaEvaluator namespace.
 
 
+**Assignment 01 Estimated Hours Worked:** 10
 **Assignment 01 Hours Worked:** 10
+
+**Assignment 02 Estimated Hours Worked:** 14
+**Assignment 02 Hours Worked:** 2
+
 **Total Hours Worked:** 10
 
 
