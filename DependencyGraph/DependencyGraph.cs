@@ -35,8 +35,8 @@ namespace SpreadsheetUtilities
     public class DependencyGraph
     {
         // Fields
-        private Dictionary<string, HashSet<string>> dependents;
-        private Dictionary<string, HashSet<string>> dependees;
+        private Dictionary<string, List<string>> dependents;
+        private Dictionary<string, List<string>> dependees;
         private int orderedPairs; // The total number of ordered pairs in the dependency graph
 
         /// <summary>
@@ -44,8 +44,8 @@ namespace SpreadsheetUtilities
         /// </summary>
         public DependencyGraph()
         {
-            dependents = new Dictionary<string, HashSet<string>>();
-            dependees = new Dictionary<string, HashSet<string>>();
+            dependents = new Dictionary<string, List<string>>();
+            dependees = new Dictionary<string, List<string>>();
             orderedPairs = 0;
         }
 
@@ -70,8 +70,8 @@ namespace SpreadsheetUtilities
         {
             get 
             {
-                if(dependees.TryGetValue(s, out HashSet<string>? set))
-                    return set.Count;
+                if(dependees.TryGetValue(s, out List<string>? list))
+                    return list.Count;
                 else
                     return 0;
             }
@@ -82,9 +82,9 @@ namespace SpreadsheetUtilities
         /// </summary>
         public bool HasDependents(string s)
         {
-            if (!dependents.TryGetValue(s, out HashSet<string>? set))
+            if (!dependents.TryGetValue(s, out List<string>? list))
                 return false;
-            else if (set.Count > 0)
+            else if (list.Count > 0)
                 return true;
             else
                 return false;
@@ -95,7 +95,7 @@ namespace SpreadsheetUtilities
         /// </summary>
         public bool HasDependees(string s)
         {
-            if (!dependees.TryGetValue(s, out HashSet<string>? set))
+            if (!dependees.TryGetValue(s, out List<string>? set))
                 return false;
             else if (set.Count > 0)
                 return true;
@@ -108,11 +108,11 @@ namespace SpreadsheetUtilities
         /// </summary>
         public IEnumerable<string> GetDependents(string s)
         {
-            dependents.TryGetValue(s, out HashSet<string>? set);
+            dependents.TryGetValue(s, out List<string>? set);
             if (set != null)
                 return set;
             else
-                return new HashSet<string>();
+                return new List<string>();
         }
 
         /// <summary>
@@ -120,11 +120,11 @@ namespace SpreadsheetUtilities
         /// </summary>
         public IEnumerable<string> GetDependees(string s)
         {
-            dependees.TryGetValue(s, out HashSet<string>? set);
-            if (set != null)
-                return set;
+            dependees.TryGetValue(s, out List<string>? list);
+            if (list != null)
+                return list;
             else
-                return new HashSet<string>();
+                return new List<string>();
         }
 
         /// <summary>
@@ -135,30 +135,30 @@ namespace SpreadsheetUtilities
         /// <param name="t"> t cannot be evaluated until s is</param>        /// 
         public void AddDependency(string s, string t)
         {
-            dependents.TryGetValue(s, out HashSet<string>? set);
-            dependees.TryGetValue(t, out HashSet<string>? set2);
-            if (set == null)
+            dependents.TryGetValue(s, out List<string>? list);
+            dependees.TryGetValue(t, out List<string>? list2);
+            if (list == null)
             {
-                dependents.Add(s, new HashSet<string> { t });
+                dependents.Add(s, new List<string> { t });
                 orderedPairs++;
             }
-            else if (set != null && dependents.ContainsKey(s) && !set.Contains(t))
+            else if (list != null && dependents.ContainsKey(s) && !list.Contains(t))
             {
-                set.Add(t);
+                list.Add(t);
                 dependents.Remove(s);
-                dependents.Add(s, set);
+                dependents.Add(s, list);
                 orderedPairs++;
             }
 
-            if (set2 == null)
+            if (list2 == null)
             {
-                dependees.Add(t, new HashSet<string> { s });
+                dependees.Add(t, new List<string> { s });
             }
-            else if (set2 != null && dependees.ContainsKey(t) && !set2.Contains(s))
+            else if (list2 != null && dependees.ContainsKey(t) && !list2.Contains(s))
             {
-                set2.Add(s);
+                list2.Add(s);
                 dependees.Remove(t);
-                dependees.Add(t, set2);
+                dependees.Add(t, list2);
             }
         }
 
@@ -169,21 +169,21 @@ namespace SpreadsheetUtilities
         /// <param name="t"></param>
         public void RemoveDependency(string s, string t)
         {
-            dependents.TryGetValue(s, out HashSet<string>? set);
-            dependees.TryGetValue(t, out HashSet<string>? set2);
-            if (set != null && dependents.ContainsKey(s) && set.Contains(t))
+            dependents.TryGetValue(s, out List<string>? list);
+            dependees.TryGetValue(t, out List<string>? list2);
+            if (list != null && dependents.ContainsKey(s) && list.Contains(t))
             {
                 dependents.Remove(s);
-                set.Remove(t);
-                dependents.Add(s, set);
+                list.Remove(t);
+                dependents.Add(s, list);
                 orderedPairs--;
             }
 
-            if (set2 != null && dependees.ContainsKey(t) && set2.Contains(s))
+            if (list2 != null && dependees.ContainsKey(t) && list2.Contains(s))
             {
                 dependees.Remove(t);
-                set2.Remove(s);
-                dependees.Add(t, set2);
+                list2.Remove(s);
+                dependees.Add(t, list2);
             }
         }
 
@@ -193,11 +193,24 @@ namespace SpreadsheetUtilities
         /// </summary>
         public void ReplaceDependents(string s, IEnumerable<string> newDependents)
         {
-            HashSet<string> hashDependents = newDependents.ToHashSet();
+            List<string> listDependents = newDependents.ToList();
             dependents.Remove(s);
-            dependents.Add(s, hashDependents);
+            dependents.Add(s, listDependents);
 
-            hashDependents.IntersectWith(dependees.Keys);
+            for (int i = 0; i < listDependents.Count; i++)
+            {
+                dependees.TryGetValue(listDependents[i], out List<string>? list);
+                if (dependees.ContainsKey(listDependents[i]))
+                {
+                    dependees.Remove(listDependents[i]);
+                    dependees.Add(listDependents[i], list);
+                }
+                else
+                {
+                    dependees.Add(listDependents[i], new List<string>() { s });
+                    orderedPairs++;
+                }
+            }
         }
 
         /// <summary>
@@ -206,9 +219,24 @@ namespace SpreadsheetUtilities
         /// </summary>
         public void ReplaceDependees(string s, IEnumerable<string> newDependees)
         {
-            HashSet<string> hashDependees = newDependees.ToHashSet();
+            List<string> listDependees = newDependees.ToList();
             dependees.Remove(s);
-            dependees.Add(s, hashDependees);
+            dependees.Add(s, listDependees);
+
+            for (int i = 0; i < listDependees.Count; i++)
+            {
+                dependents.TryGetValue(listDependees[i], out List<string>? list);
+                if (dependents.ContainsKey(listDependees[i]))
+                {
+                    dependents.Remove(listDependees[i]);
+                    dependents.Add(listDependees[i], list);
+                }
+                else
+                {
+                    dependents.Add(listDependees[i], new List<string>() { s });
+                    orderedPairs++;
+                }
+            }
         }
     }
 }

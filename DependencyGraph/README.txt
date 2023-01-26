@@ -9,14 +9,12 @@
 
 
 **Comments to Evaluators:**
-I posted a question to piazza about whether or not empty parenthesis was okay. A student responded that if 
-empty parenthesis are present then an error should be thrown. I could not figure out how to throw an error
-for this without breaking something else and since (at the time I submitted my project) an instructor hadn't
-confirmed this I decided not to throw an error for it.
+
 
 
 **Assignment Specific Topics:**
-
+It would have been helpful if the API specified which methods need to be O(1) and which ones
+can be O(n).
 
 
 **Consulted Peers:**
