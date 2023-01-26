@@ -4,7 +4,7 @@
 **Course:** CS 3500, University of Utah, School of Computing
 **GitHub ID:** NSwimer1321
 **Repo:** https://github.com/uofu-cs3500-spring23/spreadsheet-NSwimer1321
-**Date of Last Submission:** 01/20/2022 Time: 12:26 am
+**Date of Last Submission:** 01/27/2022 Time: 12:26 am
 **Solution:** Spreadsheet
 **Copyright:** CS 3500 and Nathaniel Taylor - This work may not be copied for use in Academic Coursework
 
@@ -13,16 +13,19 @@
 This Spreadsheet program is currently capable of taking in a mathematical infix expression and a delegate
 that takes a string and returns an int. The program can then use those two parameters to solve the given 
 expression as long as it is valid. A valid expression is defined above the Evaluate method in the 
-FormulaEvaluator namespace.
+FormulaEvaluator. The Spreadsheet program is also capable of identifying dependent and dependee relationships.
+This means that the Spreadsheet knows which "cells" must be calculated first and which ones can be calculated
+later ie. which "cells" depend on other "cells" to be calculated. NOTE: The Spreadsheet is not capable of
+identifying cycles, so the "cell" A1 could have the formula A1 + A2 in this iteration of the Spreadsheet.
 
 
 **Assignment 01 Estimated Hours Worked:** 10
 **Assignment 01 Hours Worked:** 10
 
 **Assignment 02 Estimated Hours Worked:** 14
-**Assignment 02 Hours Worked:** 2
+**Assignment 02 Hours Worked:** 4
 
-**Total Hours Worked:** 10
+**Total Hours Worked:** 14
 
 
 

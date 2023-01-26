@@ -3,8 +3,8 @@
 **Course:** CS 3500, University of Utah, School of Computing
 **GitHub ID:** NSwimer1321
 **Repo:** https://github.com/uofu-cs3500-spring23/spreadsheet-NSwimer1321
-**Date:** 01/20/22 Time: 12:26 am
-**Project Name:** Formula Evaluator Tester
+**Date:** 01/26/2022 Time: 12:26 am
+**Project Name:** Dependency Graph
 **Copyright:** CS 3500 and Nathaniel Taylor - This work may not be copied for use in Academic Coursework
 
 
@@ -16,8 +16,7 @@ confirmed this I decided not to throw an error for it.
 
 
 **Assignment Specific Topics:**
-Can we never use a console application to test our assignments ever again? It is inefficient and
-wildly annoying.
+
 
 
 **Consulted Peers:**
@@ -26,8 +25,4 @@ if I had a question and asked a question myself.
 
 
 **References:**
-I did not use any reference besides my brain for the FormulaEvaluatorTester.
-
-
-
-
+No references used besides my brain, lectures, and Piazza.

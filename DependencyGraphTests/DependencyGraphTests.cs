@@ -150,6 +150,7 @@ namespace DevelopmentTests
             Assert.AreEqual("b", e.Current);
             Assert.IsFalse(e.MoveNext());
         }
+
         /// <summary>
         ///Using lots of data
         ///</summary>
