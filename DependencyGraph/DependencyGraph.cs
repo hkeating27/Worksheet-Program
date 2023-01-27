@@ -35,6 +35,14 @@ namespace SpreadsheetUtilities
     public class DependencyGraph
     {
         // Fields
+        /// <summary>
+        /// The string is the key in the dictionary, while the
+        /// HashSet<string> is the value in the dictionary. For
+        /// dependents this means that everything in the HashSet
+        /// depends on the string ie the string must be evaluated before
+        /// everything in the HashSet. This is the opposite for dependees
+        /// ie everything in the HashSet must be evaluated before the string.
+        /// </summary>
         private Dictionary<string, HashSet<string>> dependents;
         private Dictionary<string, HashSet<string>> dependees;
         private int orderedPairs; // The total number of ordered pairs in the dependency graph
@@ -70,6 +78,7 @@ namespace SpreadsheetUtilities
         {
             get 
             {
+                //Determines if the given string exists in the dependee HashSet.
                 if(dependees.TryGetValue(s, out HashSet<string>? set))
                     return set.Count;
                 else
@@ -82,6 +91,9 @@ namespace SpreadsheetUtilities
         /// </summary>
         public bool HasDependents(string s)
         {
+            // If s does not exist in the dependents Dictionary then return false.
+            // If s does exist in the dependents Dictionary and the correspondingSet.Size > 0 then return true.
+            // Otherwise return false.
             if (!dependents.TryGetValue(s, out HashSet<string>? set))
                 return false;
             else if (set.Count > 0)
@@ -95,6 +107,9 @@ namespace SpreadsheetUtilities
         /// </summary>
         public bool HasDependees(string s)
         {
+            // If s does not exist in the dependees Dictionary then return false.
+            // If s does exist in the dependees Dictionary and the correspondingSet.Size > 0 then return true.
+            // Otherwise return false.
             if (!dependees.TryGetValue(s, out HashSet<string>? set))
                 return false;
             else if (set.Count > 0)
@@ -108,6 +123,8 @@ namespace SpreadsheetUtilities
         /// </summary>
         public IEnumerable<string> GetDependents(string s)
         {
+            //Returns the set corresponding to s if the set is not null. 
+            //Returns an empty HashSet<string> otherwise.
             dependents.TryGetValue(s, out HashSet<string>? set);
             if (set != null)
                 return set;
@@ -120,6 +137,8 @@ namespace SpreadsheetUtilities
         /// </summary>
         public IEnumerable<string> GetDependees(string s)
         {
+            //Returns the set corresponding to s if the set is not null. 
+            //Returns an empty HashSet<string> otherwise.
             dependees.TryGetValue(s, out HashSet<string>? set);
             if (set != null)
                 return set;
@@ -137,25 +156,29 @@ namespace SpreadsheetUtilities
         {
             dependents.TryGetValue(s, out HashSet<string>? set);
             dependees.TryGetValue(t, out HashSet<string>? set2);
-            if (set == null)
+            if (set == null) //If set is null, then (s,t) is not in the Dictionary, so add it
             {
                 dependents.Add(s, new HashSet<string> { t });
                 orderedPairs++;
             }
-            else if (set != null && dependents.ContainsKey(s) && !set.Contains(t))
+            else if (set != null && !set.Contains(t))
             {
+                //If s is in the Dictionary and t is not in the correspondingSet,
+                //then add t to the correspondingSet
                 set.Add(t);
                 dependents.Remove(s);
                 dependents.Add(s, set);
                 orderedPairs++;
             }
 
-            if (set2 == null)
+            if (set2 == null) //If set is null, then (t,s) is not in the Dictionary, so add it
             {
                 dependees.Add(t, new HashSet<string> { s });
             }
-            else if (set2 != null && dependees.ContainsKey(t) && !set2.Contains(s))
+            else if (set2 != null && !set2.Contains(s))
             {
+                //If t is in the Dictionary and s is not in the correspondingSet,
+                //then add s to the correspondingSet
                 set2.Add(s);
                 dependees.Remove(t);
                 dependees.Add(t, set2);
@@ -171,16 +194,18 @@ namespace SpreadsheetUtilities
         {
             dependents.TryGetValue(s, out HashSet<string>? set);
             dependees.TryGetValue(t, out HashSet<string>? set2);
-            if (set != null && dependents.ContainsKey(s) && set.Contains(t))
+            if (set != null && set.Contains(t))
             {
+                //If (s,t) is in the Dictionary, then remove it
                 dependents.Remove(s);
                 set.Remove(t);
                 dependents.Add(s, set);
                 orderedPairs--;
             }
 
-            if (set2 != null && dependees.ContainsKey(t) && set2.Contains(s))
+            if (set2 != null && set2.Contains(s))
             {
+                //If (t,s) is in the Dictionary, then remove it
                 dependees.Remove(t);
                 set2.Remove(s);
                 dependees.Add(t, set2);
@@ -193,10 +218,13 @@ namespace SpreadsheetUtilities
         /// </summary>
         public void ReplaceDependents(string s, IEnumerable<string> newDependents)
         {
+            //Replaces the HashSet corresponding to s with newDependents
             List<string> listDependents = newDependents.ToList();
             dependents.Remove(s);
             dependents.Add(s, listDependents.ToHashSet());
 
+            //Loops through newDependents and adds ordered pairs of the
+            //form (newDep[i], s) to the dependees Dictionary
             for (int i = 0; i < listDependents.Count; i++)
             {
                 if (dependees.ContainsKey(listDependents[i]))
@@ -218,10 +246,13 @@ namespace SpreadsheetUtilities
         /// </summary>
         public void ReplaceDependees(string s, IEnumerable<string> newDependees)
         {
+            //Replaces the HashSet corresponding to s with newDependees
             List<string> listDependees = newDependees.ToList();
             dependees.Remove(s);
             dependees.Add(s, listDependees.ToHashSet());
 
+            //Loops through newDependees and adds ordered pairs of the
+            //form (newDep[i], s) to the dependents Dictionary
             for (int i = 0; i < listDependees.Count; i++)
             {
                 if (dependents.ContainsKey(listDependees[i]))

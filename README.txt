@@ -4,7 +4,7 @@
 **Course:** CS 3500, University of Utah, School of Computing
 **GitHub ID:** NSwimer1321
 **Repo:** https://github.com/uofu-cs3500-spring23/spreadsheet-NSwimer1321
-**Date of Last Submission:** 01/27/2022 Time: 12:26 am
+**Date of Last Submission:** 01/27/2022 Time: 11:06 am
 **Solution:** Spreadsheet
 **Copyright:** CS 3500 and Nathaniel Taylor - This work may not be copied for use in Academic Coursework
 
@@ -23,9 +23,11 @@ identifying cycles, so the "cell" A1 could have the formula A1 + A2 in this iter
 **Assignment 01 Hours Worked:** 10
 
 **Assignment 02 Estimated Hours Worked:** 14
-**Assignment 02 Hours Worked:** 4
+**Assignment 02 Hours Worked:** 11
 
-**Total Hours Worked:** 14
+**Total Hours Worked:** 21
+
+
 
 
 
