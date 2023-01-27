@@ -11,6 +11,114 @@ namespace DevelopmentTests
     [TestClass()]
     public class DependencyGraphTest
     {
+        [TestMethod()]
+        public void HasDependents()
+        {
+            DependencyGraph t = new DependencyGraph();
+            t.AddDependency("a", "d");
+            t.AddDependency("b", "c");
+
+            Assert.IsTrue(t.HasDependents("a"));
+            Assert.IsFalse(t.HasDependents("e"));
+        }
+
+        [TestMethod()]
+        public void HasDependentsEmpty()
+        {
+            DependencyGraph t = new DependencyGraph();
+            t.AddDependency("a", "d");
+            t.AddDependency("b", "c");
+            t.ReplaceDependents("a", new HashSet<string>());
+
+            Assert.IsFalse(t.HasDependents("a"));
+        }
+
+        [TestMethod()]
+        public void HasDependees()
+        {
+            DependencyGraph t = new DependencyGraph();
+            t.AddDependency("a", "d");
+            t.AddDependency("b", "c");
+
+            Assert.IsTrue(t.HasDependees("d"));
+            Assert.IsFalse(t.HasDependees("a"));
+        }
+
+        [TestMethod()]
+        public void HasDependeesEmpty()
+        {
+            DependencyGraph t = new DependencyGraph();
+            t.AddDependency("a", "d");
+            t.AddDependency("b", "c");
+            t.ReplaceDependees("c", new HashSet<string>());
+
+            Assert.IsFalse(t.HasDependees("c"));
+        }
+
+        [TestMethod()]
+        public void ThisTest()
+        {
+            DependencyGraph t = new DependencyGraph();
+            t.AddDependency("a", "d");
+            t.AddDependency("b", "c");
+            t.AddDependency("e", "c");
+
+            Assert.AreEqual(0, t["a"]);
+            Assert.AreEqual(2, t["c"]);
+        }
+
+        [TestMethod()]
+        public void AddSameDependencyTest()
+        {
+            DependencyGraph t = new DependencyGraph();
+            t.AddDependency("a", "d");
+            t.AddDependency("b", "c");
+            t.AddDependency("e", "c");
+            Assert.AreEqual(3, t.Size);
+
+            t.AddDependency("b", "c");
+            Assert.AreEqual(3, t.Size);
+        }
+
+        [TestMethod()]
+        public void RemoveNonExistentDependency()
+        {
+            DependencyGraph t = new DependencyGraph();
+            t.AddDependency("a", "d");
+            t.AddDependency("b", "c");
+            t.AddDependency("e", "c");
+            Assert.AreEqual(3, t.Size);
+
+            t.RemoveDependency("x", "y");
+            Assert.AreEqual(3, t.Size);
+        }
+
+        [TestMethod()]
+        public void ReplaceDependantsCorrectSize()
+        {
+            DependencyGraph t = new DependencyGraph();
+            t.AddDependency("a", "z");
+            t.AddDependency("b", "x");
+            t.AddDependency("c", "d");
+            Assert.AreEqual(3, t.Size);
+
+            t.ReplaceDependents("b", new HashSet<string>() { "z", "a" });
+            Assert.AreEqual(4, t.Size);
+        }
+
+        [TestMethod()]
+        public void ReplaceDependeesCorrectSize()
+        {
+            DependencyGraph t = new DependencyGraph();
+            t.AddDependency("a", "z");
+            t.AddDependency("b", "x");
+            t.AddDependency("c", "d");
+            Assert.AreEqual(3, t.Size);
+
+            t.ReplaceDependees("d", new HashSet<string>() { "z", "a" });
+            Assert.AreEqual(4, t.Size);
+        }
+
         /// <summary>
         ///Empty graph should contain nothing
         ///</summary>
