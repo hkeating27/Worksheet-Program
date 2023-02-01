@@ -10,6 +10,7 @@ namespace FormulaEvaluatorTester
     {
         static void Main(string[] args)
         {
+            Console.WriteLine(Test1());
             Console.WriteLine(EvaluatorWorksSimpleEquation1());
             Console.WriteLine(EvaluatorWorksSimpleEquation2());
             Console.WriteLine(EvaluatorWorksSimpleEquationWithVar());
@@ -26,6 +27,11 @@ namespace FormulaEvaluatorTester
             Console.WriteLine(EvaluatorWorksWithIllegalVar());
         }
 
+        private static string Test1()
+        {
+            int value = Evaluator.Evaluate("5+7+(5)8", s => 0);
+            return value + "";
+        }
         /// <summary>
         /// This method tests the Evaluate method on a simple method
         /// </summary>

@@ -60,6 +60,8 @@ namespace FormulaEvaluator
                 else if (curToken == ")")
                 {
                     addOrSubtract();
+                    if (operators.Count == 0)
+                        throw new ArgumentException();
                     operators.Pop();
                     multiplyOrDivide();
                 }
@@ -71,6 +73,8 @@ namespace FormulaEvaluator
                 return values.Pop();
             else
             {
+                if (values.Count > 2)
+                    throw new ArgumentException();
                 toManyOperators();
                 notEnoughValues();
                 if (operators.Peek() == "+")
@@ -132,7 +136,8 @@ namespace FormulaEvaluator
             {
                 notEnoughValues();
                 int rightHandSide = values.Pop();
-                divisionByZero(rightHandSide);
+                if (rightHandSide == 0)
+                    throw new ArgumentException();
                 int leftHandSide = values.Pop();
                 operators.Pop();
                 values.Push(leftHandSide / rightHandSide);
@@ -152,7 +157,7 @@ namespace FormulaEvaluator
             catch (ArgumentException)
             {
                 Console.WriteLine("A division by 0 has occured. This is not allowed");
-                Environment.Exit(1);
+                //Environment.Exit(1);
             }
         }
 
