@@ -19,6 +19,8 @@ using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Linq.Expressions;
+
 namespace SpreadsheetUtilities
 {
     /// <summary>
@@ -39,10 +41,11 @@ namespace SpreadsheetUtilities
     public class Formula
     {
         //Fields
-        private List<string> tokens;
-        private string formula;
         private Func<string, string> normalizer;
         private Func<string, bool> validator;
+        private List<string> tokens; //A list of the individual tokens in the given formula
+        private string formula; // The given formula
+        double finalAns; // The final calculated answer of the formula
 
         /// <summary>
         /// Creates a Formula from a string that consists of an infix expression written as
@@ -66,8 +69,8 @@ namespace SpreadsheetUtilities
             else if (!double.TryParse(tokens[0], out double result) && !isVar(tokens[0]) && tokens[0] != "(")
                 throw new FormulaFormatException("The given formula is invalid because formulas must start" +
                     " with a number, a valid variable, or opening parentheis.");
-            else if (!double.TryParse(tokens[tokens.Count - 1], out double result2) && 
-                     !isVar(tokens[tokens.Count - 1]) &&tokens[tokens.Count - 1] != ")")
+            else if (!double.TryParse(tokens[tokens.Count - 1], out double result2) &&
+                     !isVar(tokens[tokens.Count - 1]) && tokens[tokens.Count - 1] != ")")
                 throw new FormulaFormatException("The given formula is invalid because formulas must end" +
                    " with a number, a valid variable, or opening parentheis.");
 
@@ -87,7 +90,7 @@ namespace SpreadsheetUtilities
                 else if (tokens[i] == "(" || tokens[i] == "+" || tokens[i] == "-" || tokens[i] == "*" ||
                     tokens[i] == "/")
                 {
-                    if (!double.TryParse(tokens[i + 1], out double result) && !isVar(tokens[i + 1]) && 
+                    if (!double.TryParse(tokens[i + 1], out double result) && !isVar(tokens[i + 1]) &&
                         tokens[i + 1] != "(")
                         throw new FormulaFormatException("The given formula is invalid because all opening" +
                             " parenthesis and operators must be followed by a number, variable, or opening" +
@@ -216,8 +219,75 @@ namespace SpreadsheetUtilities
         /// </summary>
         public object Evaluate(Func<string, double> lookup)
         {
-            return null;
+            Stack<double> values    = new Stack<double>();
+            Stack<string> operators = new Stack<string>();
+            string curToken; //The token currently being evaluated
+            double finalAns = 0; //The final calculated answer of the formula
+
+            //Evaluates the given expression, token by token
+            for (int pos = 0; pos < tokens.Count; pos++)
+            {
+                curToken = tokens[pos].Trim(); //Ignores any whitespace in the current token
+
+                //Determines what kind of token the current token is and evaluates it
+                if (Regex.IsMatch(curToken, "^[a-zA-Z]+[0-9]$+") && !Char.IsLetter(curToken[curToken.Length - 1]))
+                {
+                    values.Push(lookup(normalizer(curToken)));
+                    if (!multiplyOrDivide(values, operators))
+                        return new FormulaError("The given formula was invalid due to a division by zero.");
+                }
+                else if (double.TryParse(curToken, out double result))
+                {
+                    values.Push(result);
+                    if (!multiplyOrDivide(values, operators))
+                        return new FormulaError("The given formula was invalid due to a division by zero.");
+                }
+                else if (curToken == "+" || curToken == "-")
+                {
+                    addOrSubtract(values, operators);
+                    operators.Push(curToken);
+                }
+                else if (curToken == "*" || curToken == "/" || curToken == "(")
+                {
+                    operators.Push(curToken);
+                }
+                else if (curToken == ")")
+                {
+                    addOrSubtract(values, operators);
+                    operators.Pop();
+                    if (!multiplyOrDivide(values, operators))
+                        return new FormulaError("The given formula was invalid due to a division by zero.");
+                }
+            }
+
+            //Determines if one of the two possible endstates have been achieved.
+            //If so then a value is returned. If not then an exception is thrown.
+            if (operators.Count == 0 && values.Count == 1)
+            {
+                finalAns = values.Pop();
+                return finalAns;
+            }
+            else
+            {
+                if (operators.Peek() == "+")
+                {
+                    double rightHandSide = values.Pop();
+                    operators.Pop();
+                    double leftHandSide = values.Pop();
+                    finalAns = leftHandSide + rightHandSide;
+                    return (leftHandSide + rightHandSide);
+                }
+                else
+                {
+                    double rightHandSide = values.Pop();
+                    operators.Pop();
+                    double leftHandSide = values.Pop();
+                    finalAns = leftHandSide - rightHandSide;
+                    return (leftHandSide - rightHandSide);
+                }
+            }
         }
+
 
         /// <summary>
         /// Enumerates the normalized versions of all of the variables that occur in this 
@@ -309,7 +379,25 @@ namespace SpreadsheetUtilities
         /// </summary>
         public static bool operator ==(Formula f1, Formula f2)
         {
-            return false;
+            List<string> tokens = f1.retrieveTokens();
+            List<string> exp2Tokens = f2.retrieveTokens();
+            if (tokens.Count != exp2Tokens.Count)
+                return false;
+
+            for (int i = 0; i < tokens.Count; i++)
+            {
+                if (double.TryParse(tokens[i], out double result) && double.TryParse(exp2Tokens[i],
+                                                                                     out double result2))
+                {
+                    if (result.ToString() != result2.ToString())
+                        return false;
+                }
+                else if (tokens[i] != exp2Tokens[i])
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         /// <summary>
@@ -319,6 +407,24 @@ namespace SpreadsheetUtilities
         /// </summary>
         public static bool operator !=(Formula f1, Formula f2)
         {
+            List<string> tokens = f1.retrieveTokens();
+            List<string> exp2Tokens = f2.retrieveTokens();
+            if (tokens.Count != exp2Tokens.Count)
+                return true;
+
+            for (int i = 0; i < tokens.Count; i++)
+            {
+                if (double.TryParse(tokens[i], out double result) && double.TryParse(exp2Tokens[i],
+                                                                                     out double result2))
+                {
+                    if (result.ToString() != result2.ToString())
+                        return true;
+                }
+                else if (tokens[i] != exp2Tokens[i])
+                {
+                    return true;
+                }
+            }
             return false;
         }
 
@@ -329,7 +435,8 @@ namespace SpreadsheetUtilities
         /// </summary>
         public override int GetHashCode()
         {
-            return 0;
+            int final = (int)finalAns;
+            return (final + tokens.Count);
         }
 
         /// <summary>
@@ -416,6 +523,59 @@ namespace SpreadsheetUtilities
         private List<string> retrieveTokens()
         {
             return tokens;
+        }
+
+        /// <summary>
+        /// Determines if the next operator to be evaluated is addition or
+        /// subtraction. It the uses the values stack to evaluate that operator.
+        /// </summary>
+        /// <param name="values"></param> the values stack
+        /// <param name="ops"></param> the operators stack
+        private static void addOrSubtract(Stack<double> values, Stack<string> ops)
+        {
+            if (ops.Count != 0 && ops.Peek() == "+")
+            {
+                double rightHandSide = values.Pop();
+                double leftHandSide = values.Pop();
+                ops.Pop();
+                values.Push(leftHandSide + rightHandSide);
+            }
+            else if (ops.Count != 0 && ops.Peek() == "-")
+            {
+                double rightHandSide = values.Pop();
+                double leftHandSide = values.Pop();
+                ops.Pop();
+                values.Push(leftHandSide - rightHandSide);
+            }
+        }
+
+        /// <summary>
+        /// Determines if the next operator to be evaluated is multiplication
+        /// or division. It then uses the values stack to evaluate that operator.
+        /// </summary>
+        /// <param name="values"></param> the values stack
+        /// <param name="ops"></param> the operators stack
+        /// <returns></returns> return false if there is a divison by 0 and true otherwise
+        private static bool multiplyOrDivide(Stack<double> values, Stack<string> ops)
+        {
+            if (ops.Count != 0 && ops.Peek() == "*")
+            {
+                double rightHandSide = values.Pop();
+                double leftHandSide = values.Pop();
+                ops.Pop();
+                values.Push(leftHandSide * rightHandSide);
+            }
+            else if (ops.Count != 0 && ops.Peek() == "/")
+            {
+                double rightHandSide = values.Pop();
+                if (rightHandSide == 0)
+                    return false;
+
+                double leftHandSide = values.Pop();
+                ops.Pop();
+                values.Push(leftHandSide / rightHandSide);
+            }
+            return true;
         }
     }
 }

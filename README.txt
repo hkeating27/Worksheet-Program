@@ -25,7 +25,10 @@ identifying cycles, so the "cell" A1 could have the formula A1 + A2 in this iter
 **Assignment 02 Estimated Hours Worked:** 14
 **Assignment 02 Hours Worked:** 11
 
-**Total Hours Worked:** 21
+**Assignment 03 Estimated Hours Worked:** 10
+**Assignment 03 Hours Worked:** 6
+
+**Total Hours Worked:** 27
 
 
 
