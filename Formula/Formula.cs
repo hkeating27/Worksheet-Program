@@ -219,7 +219,7 @@ namespace SpreadsheetUtilities
         /// </summary>
         public object Evaluate(Func<string, double> lookup)
         {
-            Stack<double> values    = new Stack<double>();
+            Stack<double> values = new Stack<double>();
             Stack<string> operators = new Stack<string>();
             string curToken; //The token currently being evaluated
             double finalAns = 0; //The final calculated answer of the formula
@@ -230,7 +230,7 @@ namespace SpreadsheetUtilities
                 curToken = tokens[pos].Trim(); //Ignores any whitespace in the current token
 
                 //Determines what kind of token the current token is and evaluates it
-                if (Regex.IsMatch(curToken, "^[a-zA-Z]+[0-9]$+") && !Char.IsLetter(curToken[curToken.Length - 1]))
+                if (Regex.IsMatch(curToken, "^[a-zA-Z_][0-9a-zA-Z_]$"))
                 {
                     values.Push(lookup(normalizer(curToken)));
                     if (!multiplyOrDivide(values, operators))
@@ -306,7 +306,7 @@ namespace SpreadsheetUtilities
                     if (!variables.Contains(normalizer(tokens[i])))
                         variables.Add(normalizer(tokens[i]));
             }
-            return variables;
+            return (IEnumerable<string>)variables;
         }
 
         /// <summary>
@@ -352,14 +352,14 @@ namespace SpreadsheetUtilities
             if (obj == null || obj.GetType() != this.GetType())
                 return false;
 
-            Formula exp2 = (Formula) obj;
+            Formula exp2 = (Formula)obj;
             List<string> exp2Tokens = exp2.retrieveTokens();
             if (exp2Tokens.Count != this.tokens.Count)
                 return false;
 
             for (int i = 0; i < tokens.Count; i++)
             {
-                if (double.TryParse(tokens[i], out double result) && double.TryParse(exp2Tokens[i], 
+                if (double.TryParse(tokens[i], out double result) && double.TryParse(exp2Tokens[i],
                                                                                      out double result2))
                 {
                     if (result.ToString() != result2.ToString())
@@ -436,7 +436,7 @@ namespace SpreadsheetUtilities
         public override int GetHashCode()
         {
             int final = (int)finalAns;
-            return (final + tokens.Count);
+            return (final / tokens.Count);
         }
 
         /// <summary>
@@ -510,7 +510,7 @@ namespace SpreadsheetUtilities
         /// <returns></returns> true or false
         private bool isVar(string token)
         {
-            if (Regex.IsMatch(token, "^[a-zA-Z]+[0-9]$+") && !Char.IsLetter(token[token.Length - 1]))
+            if (Regex.IsMatch(token, "^[a-zA-Z][0-9]$+") && !Char.IsLetter(token[token.Length - 1]))
                 return true;
             return false;
         }
