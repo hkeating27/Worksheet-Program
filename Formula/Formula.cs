@@ -41,10 +41,9 @@ namespace SpreadsheetUtilities
     public class Formula
     {
         //Fields
-        private Func<string, string> normalizer;
-        private Func<string, bool> validator;
+        private Func<string, string> normalizer; //Sets all variables to a common form
+        private Func<string, bool> validator; //Determines if variables are of an accepted form
         private List<string> tokens; //A list of the individual tokens in the given formula
-        private string formula; // The given formula
         private int sumOfNums; //The sum of all numbers(rounded down) in the formula (used for HashCode)
 
         /// <summary>
@@ -80,8 +79,9 @@ namespace SpreadsheetUtilities
             int rightParenthesis = 0;
             int leftParenthesis = 0;
             tokens = GetTokens(formula).ToList();
-            this.formula = formula;
 
+            //If the formula is empty, does not start with a number, variable, or opening parenthesis, and
+            //does not end with a number, variable, or closing parenthesis then the formula is invalid
             if (tokens.Count == 0)
                 throw new FormulaFormatException("The given formula is invalid because formulas must contain" +
                     " at least one valid token.");
@@ -93,6 +93,7 @@ namespace SpreadsheetUtilities
                 throw new FormulaFormatException("The given formula is invalid because formulas must end" +
                    " with a number, a valid variable, or opening parentheis.");
 
+            //Determines whether or not every token in the formula is valid
             for (int i = 0; i < tokens.Count; i++)
             {
                 if (isVar(tokens[i]) && !isVar(normalize(tokens[i])))
@@ -222,8 +223,10 @@ namespace SpreadsheetUtilities
             }
             catch
             {
-                return new FormulaError("The given formula was invalid. The most likely reason is a " +
-                                        " division by 0 occured.");
+                //If at any point during the calculation of the formula an error is thrown then
+                // a new FormulaError is returned.
+                return new FormulaError("The given formula was invalid. The reason could be due to a divison" +
+                                        " by 0 or an invalid Lookup.");
             }
         }
 
@@ -239,12 +242,15 @@ namespace SpreadsheetUtilities
         public IEnumerable<String> GetVariables()
         {
             HashSet<string> variables = new HashSet<string>();
+
+            //Looks through every token in the formula and adds every variable to a HashSet
             foreach (string token in tokens)
             {
                 if (isVar(token))
                     if (!variables.Contains(normalizer(token)))
                         variables.Add(normalizer(token));
             }
+            //Returns a Hashset containing every variable in the formula (a variable can only be added once)
             return variables;
         }
 
@@ -259,6 +265,8 @@ namespace SpreadsheetUtilities
         public override string ToString()
         {
             string returnString = "";
+
+            //Looks through every token in the formula and concatonates each on into a string
             foreach (string token in tokens)
             {
                 if (isVar(token))
@@ -288,6 +296,7 @@ namespace SpreadsheetUtilities
         /// </summary>
         public override bool Equals(object? obj)
         {
+            //If obj is null or is not of the type Formula, then this.Equals(obj) is false
             if (obj == null || obj.GetType() != this.GetType())
                 return false;
 
@@ -296,6 +305,8 @@ namespace SpreadsheetUtilities
             if (exp2Tokens.Count != this.tokens.Count)
                 return false;
 
+            //Looks through every token in both Formulas and if at any point the two tokens
+            //are not equal to each other then false will be returned. Otherwise true will be returned.
             for (int i = 0; i < tokens.Count; i++)
             {
                 if (double.TryParse(tokens[i], out double result) && double.TryParse(exp2Tokens[i],
@@ -323,6 +334,8 @@ namespace SpreadsheetUtilities
             if (tokens.Count != exp2Tokens.Count)
                 return false;
 
+            //Looks through every token in both Formulas and if at any point the two tokens
+            //are not equal to each other then false will be returned. Otherwise true will be returned.
             for (int i = 0; i < tokens.Count; i++)
             {
                 if (double.TryParse(tokens[i], out double result) && double.TryParse(exp2Tokens[i],
@@ -346,6 +359,8 @@ namespace SpreadsheetUtilities
         /// </summary>
         public static bool operator !=(Formula f1, Formula f2)
         {
+            //If the two formulas have the same HashCode then they are (usually)
+            //equivalent. If they aren't then the two formulas are not equivalent.
             if (f1.GetHashCode() == f2.GetHashCode())
                 return false;
             return true;
@@ -358,6 +373,8 @@ namespace SpreadsheetUtilities
         /// </summary>
         public override int GetHashCode()
         {
+            //Takes the total number of tokens in the formula and adds it to the total sum
+            //of all the numbers in the formula to create a HashCode. 
             return tokens.Count + sumOfNums;
         }
 
