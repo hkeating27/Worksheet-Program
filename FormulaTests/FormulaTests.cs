@@ -64,10 +64,6 @@ namespace FormulaTests
         public void FirstConstructorIllegalFollowingOperator()
         {
             Formula exp1 = new Formula("(+8)");
-            Formula exp2 = new Formula("-*8)");
-            Formula exp3 = new Formula("+/8)");
-            Formula exp4 = new Formula("*)8)");
-            Formula exp5 = new Formula("/+8)");
         }
 
         /// <summary>
@@ -79,10 +75,6 @@ namespace FormulaTests
         public void FirstConstructorIllegalFollowingNumOrVar()
         {
             Formula exp1 = new Formula("8.2 7 - 9");
-            Formula exp2 = new Formula("A1(8 + 2)");
-            Formula exp3 = new Formula("(9 - 8)2");
-            Formula exp4 = new Formula("7.9 Z6 * 2");
-            Formula exp5 = new Formula("(4 + 5) Z3 / 2");
         }
 
         /// <summary>

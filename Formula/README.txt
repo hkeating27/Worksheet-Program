@@ -3,7 +3,7 @@
 **Course:** CS 3500, University of Utah, School of Computing
 **GitHub ID:** NSwimer1321
 **Repo:** https://github.com/uofu-cs3500-spring23/spreadsheet-NSwimer1321
-**Date:** 02/02/2023 Time: 9:07 pm
+**Date:** 02/02/2023 Time: 11:48 pm
 **Project Name:** Formula
 **Copyright:** CS 3500 and Nathaniel Taylor - This work may not be copied for use in Academic Coursework
 

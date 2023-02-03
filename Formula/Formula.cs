@@ -454,7 +454,7 @@ namespace SpreadsheetUtilities
         /// <returns></returns> true or false
         private bool isVar(string token)
         {
-            if (Regex.IsMatch(token, "^[a-zA-Z]+[0-9]$+") && !Char.IsLetter(token[token.Length - 1]))
+            if (Regex.IsMatch(token, @"[a-zA-Z_](?: [a-zA-Z_]|\d)*"))
                 return true;
             return false;
         }
