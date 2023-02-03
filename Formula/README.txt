@@ -25,3 +25,10 @@ if I had a question and asked a question myself.
 **References:**
 No references used besides my brain, lectures, and Piazza. I also used the Formula shell that
 was given in the assignment details.
+
+
+
+
+
+
+
