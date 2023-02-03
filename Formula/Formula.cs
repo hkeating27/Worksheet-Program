@@ -446,37 +446,6 @@ namespace SpreadsheetUtilities
             }
 
         }
-    }
-
-    /// <summary>
-    /// Used to report syntactic errors in the argument to the Formula constructor.
-    /// </summary>
-    public class FormulaFormatException : Exception
-    {
-        /// <summary>
-        /// Constructs a FormulaFormatException containing the explanatory message.
-        /// </summary>
-        public FormulaFormatException(String message)
-            : base(message)
-        {
-        }
-    }
-
-    /// <summary>
-    /// Used as a possible return value of the Formula.Evaluate method.
-    /// </summary>
-    public struct FormulaError
-    {
-        /// <summary>
-        /// Constructs a FormulaError containing the explanatory reason.
-        /// </summary>
-        /// <param name="reason"></param>
-        public FormulaError(String reason)
-            : this()
-        {
-            Reason = reason;
-        }
-
         /// <summary>
         ///  The reason why this FormulaError was created.
         /// </summary>
@@ -553,6 +522,37 @@ namespace SpreadsheetUtilities
             }
         }
     }
+}
+
+    /// <summary>
+    /// Used to report syntactic errors in the argument to the Formula constructor.
+    /// </summary>
+    public class FormulaFormatException : Exception
+    {
+        /// <summary>
+        /// Constructs a FormulaFormatException containing the explanatory message.
+        /// </summary>
+        public FormulaFormatException(String message)
+            : base(message)
+        {
+        }
+    }
+
+    /// <summary>
+    /// Used as a possible return value of the Formula.Evaluate method.
+    /// </summary>
+    public struct FormulaError
+    {
+        /// <summary>
+        /// Constructs a FormulaError containing the explanatory reason.
+        /// </summary>
+        /// <param name="reason"></param>
+        public FormulaError(String reason)
+            : this()
+        {
+            Reason = reason;
+        }
+
 }
 
 
