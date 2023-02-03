@@ -447,10 +447,6 @@ namespace SpreadsheetUtilities
 
         }
         /// <summary>
-        ///  The reason why this FormulaError was created.
-        /// </summary>
-        public string Reason { get; private set; }
-        /// <summary>
         /// Determines if the given string is a variable using the rules
         /// from assignment 01
         /// </summary>
@@ -522,7 +518,6 @@ namespace SpreadsheetUtilities
             }
         }
     }
-}
 
     /// <summary>
     /// Used to report syntactic errors in the argument to the Formula constructor.
@@ -547,12 +542,16 @@ namespace SpreadsheetUtilities
         /// Constructs a FormulaError containing the explanatory reason.
         /// </summary>
         /// <param name="reason"></param>
-        public FormulaError(String reason)
-            : this()
+        public FormulaError(String reason): this()
         {
             Reason = reason;
         }
 
+        /// <summary>
+        ///  The reason why this FormulaError was created.
+        /// </summary>
+        public string Reason { get; private set; }
+    }
 }
 
 
