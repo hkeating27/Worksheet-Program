@@ -8,6 +8,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+
 namespace SpreadsheetUtilities
 {
     /// <summary>
@@ -218,8 +219,17 @@ namespace SpreadsheetUtilities
         /// </summary>
         public void ReplaceDependents(string s, IEnumerable<string> newDependents)
         {
+            if (newDependents == null)
+                return;
+
             //Replaces the HashSet corresponding to s with newDependents
             List<string> listDependents = newDependents.ToList();
+            List<string> oldDependents;
+            dependents.TryGetValue(s, out HashSet<string>? set);
+            if (set != null)
+                oldDependents = set.ToList();
+            else
+                oldDependents = new List<string>();
             dependents.Remove(s);
             dependents.Add(s, listDependents.ToHashSet());
 
@@ -229,15 +239,29 @@ namespace SpreadsheetUtilities
             {
                 if (dependees.ContainsKey(listDependents[i]))
                 {
-                    dependees.Remove(listDependents[i]);
-                    dependees.Add(listDependents[i], new HashSet<string>() { s });
+                    dependees.TryGetValue(listDependents[i], out HashSet<string>? set2);
+                    HashSet<string> newSet;
+                    if (set2 != null)
+                    {
+                        newSet = set2;
+                        if (!set2.Contains(s))
+                            newSet.Add(s);
+                        dependees.Remove(listDependents[i]);
+                        dependees.Add(listDependents[i], newSet);
+                    }
+                    else
+                    {
+                        newSet = new HashSet<string>();
+                        dependees.Remove(listDependents[i]);
+                        dependees.Add(listDependents[i], newSet);
+                    }
                 }
                 else
                 {
                     dependees.Add(listDependents[i], new HashSet<string>() { s });
-                    orderedPairs++;
                 }
             }
+            orderedPairs += (listDependents.Count - oldDependents.Count);
         }
 
         /// <summary>
@@ -246,8 +270,17 @@ namespace SpreadsheetUtilities
         /// </summary>
         public void ReplaceDependees(string s, IEnumerable<string> newDependees)
         {
+            if (newDependees == null)
+                return;
+
             //Replaces the HashSet corresponding to s with newDependees
             List<string> listDependees = newDependees.ToList();
+            List<string> oldDependees;
+            dependees.TryGetValue(s, out HashSet<string>? set);
+            if (set != null)
+                oldDependees = set.ToList();
+            else
+                oldDependees = new List<string>();
             dependees.Remove(s);
             dependees.Add(s, listDependees.ToHashSet());
 
@@ -257,15 +290,29 @@ namespace SpreadsheetUtilities
             {
                 if (dependents.ContainsKey(listDependees[i]))
                 {
-                    dependents.Remove(listDependees[i]);
-                    dependents.Add(listDependees[i], new HashSet<string>() { s });
+                    dependents.TryGetValue(listDependees[i], out HashSet<string>? set2);
+                    HashSet<string> newSet;
+                    if (set2 != null)
+                    {
+                        newSet = set2;
+                        if (!set2.Contains(s))
+                            newSet.Add(s);
+                        dependents.Remove(listDependees[i]);
+                        dependents.Add(listDependees[i], newSet);
+                    }
+                    else
+                    {
+                        newSet = new HashSet<string>();
+                        dependents.Remove(listDependees[i]);
+                        dependents.Add(listDependees[i], newSet);
+                    }
                 }
                 else
                 {
                     dependents.Add(listDependees[i], new HashSet<string>() { s });
-                    orderedPairs++;
                 }
             }
+            orderedPairs += (listDependees.Count - oldDependees.Count);
         }
     }
 }

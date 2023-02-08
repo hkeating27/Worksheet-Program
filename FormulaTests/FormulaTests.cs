@@ -269,7 +269,8 @@ namespace FormulaTests
         {
             Formula exp = new Formula("2 + 9/0");
             Formula exp2 = new Formula("(7 * 2) /(10 - 10)");
-            Assert.AreEqual(exp.Evaluate(s => 2).GetType(), exp2.Evaluate(s => 3).GetType());
+            Assert.IsInstanceOfType(exp.Evaluate(s => 0), typeof(FormulaError));
+            Assert.IsInstanceOfType(exp2.Evaluate(s => 0), typeof(FormulaError));
         }
 
         /// <summary>

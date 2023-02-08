@@ -7,6 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FormulaEvaluatorTester", "F
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A94171DD-AEAB-424D-8371-12269EC0D588}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		README.txt = README.txt
 	EndProjectSection
 EndProject
@@ -16,7 +17,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependencyGraphTests", "Dep
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FormulaTests", "FormulaTests\FormulaTests.csproj", "{C264442E-5336-426D-8803-9A69514CC34D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Formula", "Formula\Formula.csproj", "{0C8D604C-4774-48F5-B154-B2F96D906D59}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Formula", "Formula\Formula.csproj", "{0C8D604C-4774-48F5-B154-B2F96D906D59}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Spreadsheet", "Spreadsheet\Spreadsheet.csproj", "{100EDBAF-AED6-4084-A1D8-E334F8DAD6A7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpreadsheetTests", "SpreadsheetTests\SpreadsheetTests.csproj", "{FF3136CF-CEE1-4AAC-AEF2-87C36CD71CB3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -44,6 +49,14 @@ Global
 		{0C8D604C-4774-48F5-B154-B2F96D906D59}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0C8D604C-4774-48F5-B154-B2F96D906D59}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0C8D604C-4774-48F5-B154-B2F96D906D59}.Release|Any CPU.Build.0 = Release|Any CPU
+		{100EDBAF-AED6-4084-A1D8-E334F8DAD6A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{100EDBAF-AED6-4084-A1D8-E334F8DAD6A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{100EDBAF-AED6-4084-A1D8-E334F8DAD6A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{100EDBAF-AED6-4084-A1D8-E334F8DAD6A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FF3136CF-CEE1-4AAC-AEF2-87C36CD71CB3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FF3136CF-CEE1-4AAC-AEF2-87C36CD71CB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF3136CF-CEE1-4AAC-AEF2-87C36CD71CB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FF3136CF-CEE1-4AAC-AEF2-87C36CD71CB3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

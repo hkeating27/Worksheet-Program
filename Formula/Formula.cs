@@ -120,13 +120,6 @@ namespace SpreadsheetUtilities
                     throw new FormulaFormatException("The given formula is invalid because there is a" +
                         " variable that is invalid when normalized.");
                 }
-                else if (tokens[i] == ")")
-                {
-                    rightParenthesis++;
-                    if (rightParenthesis > leftParenthesis)
-                        throw new FormulaFormatException("The given formula is invalid because formulas must" +
-                            " contain the same amount of opening and closing parenthesis.");
-                }
                 else if (tokens[i] == "(" || tokens[i] == "+" || tokens[i] == "-" || tokens[i] == "*" ||
                     tokens[i] == "/")
                 {
@@ -141,14 +134,24 @@ namespace SpreadsheetUtilities
                             " parenthesis.");
                     }
                 }
-                else if (double.TryParse(tokens[i], out double result) || tokens[i] == ")")
+                else if (double.TryParse(tokens[i], out double result) || isVar(tokens[i]) || tokens[i] == ")")
                 {
                     sumOfNums += (int)result;
+                    if (tokens[i] == ")")
+                    {
+                        rightParenthesis++;
+                        if (rightParenthesis > leftParenthesis)
+                            throw new FormulaFormatException("The given formula is invalid because formulas must" +
+                                " contain the same amount of opening and closing parenthesis.");
+                    }
+
                     if (i + 1 < tokens.Count && tokens[i + 1] != "+" && tokens[i + 1] != "-" &&
                         tokens[i + 1] != "/" && tokens[i + 1] != "*" && tokens[i + 1] != ")")
+                    {
                         throw new FormulaFormatException("The given formula is invalid because all numbers," +
                             " variables, and closing parenthesis must be followed by an operator or closing" +
                             " parenthesis.");
+                    }
                 }
             }
             if (leftParenthesis != rightParenthesis)
@@ -348,6 +351,11 @@ namespace SpreadsheetUtilities
                     if (result.ToString() != result2.ToString())
                         return false;
                 }
+                else if (isVar(normalizer(tokens[i])) && isVar(normalizer(exp2Tokens[i])))
+                {
+                    if (normalizer(tokens[i]) != normalizer(exp2Tokens[i]))
+                        return false;
+                }
                 else if (tokens[i] != exp2Tokens[i])
                 {
                     return false;
@@ -512,6 +520,8 @@ namespace SpreadsheetUtilities
             else if (ops.Count != 0 && ops.Peek() == "/")
             {
                 double rightHandSide = values.Pop();
+                if (rightHandSide == 0)
+                    throw new DivideByZeroException();
                 double leftHandSide = values.Pop();
                 ops.Pop();
                 values.Push(leftHandSide / rightHandSide);
