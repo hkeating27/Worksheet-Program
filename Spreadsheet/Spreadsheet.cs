@@ -19,8 +19,17 @@ namespace SS
     internal class Spreadsheet : AbstractSpreadsheet
     {
         //Fields
-        private Dictionary<string, Cell> cells = new Dictionary<string, Cell>();
-        private DependencyGraph spreadsheet = new DependencyGraph();
+        private Dictionary<string, Cell> cells;
+        private DependencyGraph spreadsheet;
+
+        /// <summary>
+        /// Creates a new spreadsheet.
+        /// </summary>
+        public Spreadsheet()
+        {
+            cells = new Dictionary<string, Cell>();
+            spreadsheet = new DependencyGraph();
+        }
 
         /// <summary>
         ///   Returns the contents (as opposed to the value) of the named cell.

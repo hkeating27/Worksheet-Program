@@ -19,8 +19,10 @@ convert a Formula to a String, determine if two formulas are equal or not, and g
 expression is defined above the Evaluate method in the FormulaEvaluator. The Spreadsheet program is also capable 
 of identifying dependent and dependee relationships. This means that the Spreadsheet knows which "cells" must 
 be calculated first and which ones can be calculated later ie. which "cells" depend on other "cells" to be 
-calculated. NOTE: The Spreadsheet is not capable of identifying cycles, so the "cell" A1 could have the formula 
-A1 + A2 in this iteration of the Spreadsheet.
+calculated. The Spreadsheet is also capable of keeping track of all of the cells containing a string, double, or
+formula. The Spreadsheet can also keep track of the direct relationships between cells and can find the indirect
+relationships between cells. Lastly, the Spreadsheet can also set the contents of a cell in the Spreadsheet to
+a a string, double, or formula.
 
 
 **Assignment 01 Estimated Hours Worked:** 10
@@ -31,6 +33,9 @@ A1 + A2 in this iteration of the Spreadsheet.
 
 **Assignment 03 Estimated Hours Worked:** 10
 **Assignment 03 Hours Worked:** 11
+
+**Assignment 04 Estimated Hours Worked:** 10
+**Assignment 04 Hours Worked:** 6
 
 **Total Hours Worked:** 32
 
