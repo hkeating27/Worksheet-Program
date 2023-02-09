@@ -13,8 +13,9 @@ My work stands on its own.
 
 
 **Assignment Specific Topics:**
-Can we never use a console application to test our assignments ever again? It is inefficient and
-wildly annoying.
+I don't really have any comments on the testing part of this assignment. Once you figure out how every method
+should work and interact with the chosen data structure and DependencyGraph and private helper methods, then
+writing the tests is pretty easy.
 
 
 **Consulted Peers:**

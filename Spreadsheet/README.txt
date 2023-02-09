@@ -13,8 +13,12 @@ My work stands on its own.
 
 
 **Assignment Specific Topics:**
-I don't really have any comments on this assignment. It was enjoyable and allowed me to
-think even more in a SE mindset.
+I found it kind of annoying that there wasn't any detail about how the Set methods should be interacting with
+our DependencyGraph and Dictionary of Cells (that was what I chose to represent all nonempty cells in my ss).
+I understand that we can't and shouldn't have every single detail of implmentation handed to us, but even a
+comment of just "think about how Excel does this" would have been helpful. I also think it is a bit odd that
+the SetContents(name, text) and the SetContents(name, formula) have the requirement of checking to see if
+text and formula is null, but the SetContents(name, number) does not have you check if number is null.
 
 
 **Consulted Peers:**

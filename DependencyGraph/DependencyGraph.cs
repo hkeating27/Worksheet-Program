@@ -219,100 +219,32 @@ namespace SpreadsheetUtilities
         /// </summary>
         public void ReplaceDependents(string s, IEnumerable<string> newDependents)
         {
-            if (newDependents == null)
-                return;
-
-            //Replaces the HashSet corresponding to s with newDependents
-            List<string> listDependents = newDependents.ToList();
-            List<string> oldDependents;
-            dependents.TryGetValue(s, out HashSet<string>? set);
-            if (set != null)
-                oldDependents = set.ToList();
-            else
-                oldDependents = new List<string>();
-            dependents.Remove(s);
-            dependents.Add(s, listDependents.ToHashSet());
-
-            //Loops through newDependents and adds ordered pairs of the
-            //form (newDep[i], s) to the dependees Dictionary
-            for (int i = 0; i < listDependents.Count; i++)
+            foreach (String dependent in GetDependents(s))
             {
-                if (dependees.ContainsKey(listDependents[i]))
-                {
-                    dependees.TryGetValue(listDependents[i], out HashSet<string>? set2);
-                    HashSet<string> newSet;
-                    if (set2 != null)
-                    {
-                        newSet = set2;
-                        if (!set2.Contains(s))
-                            newSet.Add(s);
-                        dependees.Remove(listDependents[i]);
-                        dependees.Add(listDependents[i], newSet);
-                    }
-                    else
-                    {
-                        newSet = new HashSet<string>();
-                        dependees.Remove(listDependents[i]);
-                        dependees.Add(listDependents[i], newSet);
-                    }
-                }
-                else
-                {
-                    dependees.Add(listDependents[i], new HashSet<string>() { s });
-                }
+                RemoveDependency(s, dependent);
             }
-            orderedPairs += (listDependents.Count - oldDependents.Count);
+            foreach (String newDependent in newDependents)
+            {
+                AddDependency(s, newDependent);
+            }
         }
 
+
         /// <summary>
-        /// Removes all existing ordered pairs of the form (r,s).  Then, for each 
+        /// Removes all existing ordered pairs of the form (r,s).  Then, for each
         /// t in newDependees, adds the ordered pair (t,s).
         /// </summary>
         public void ReplaceDependees(string s, IEnumerable<string> newDependees)
         {
-            if (newDependees == null)
-                return;
-
-            //Replaces the HashSet corresponding to s with newDependees
-            List<string> listDependees = newDependees.ToList();
-            List<string> oldDependees;
-            dependees.TryGetValue(s, out HashSet<string>? set);
-            if (set != null)
-                oldDependees = set.ToList();
-            else
-                oldDependees = new List<string>();
-            dependees.Remove(s);
-            dependees.Add(s, listDependees.ToHashSet());
-
-            //Loops through newDependees and adds ordered pairs of the
-            //form (newDep[i], s) to the dependents Dictionary
-            for (int i = 0; i < listDependees.Count; i++)
+            foreach (String dependee in GetDependees(s))
             {
-                if (dependents.ContainsKey(listDependees[i]))
-                {
-                    dependents.TryGetValue(listDependees[i], out HashSet<string>? set2);
-                    HashSet<string> newSet;
-                    if (set2 != null)
-                    {
-                        newSet = set2;
-                        if (!set2.Contains(s))
-                            newSet.Add(s);
-                        dependents.Remove(listDependees[i]);
-                        dependents.Add(listDependees[i], newSet);
-                    }
-                    else
-                    {
-                        newSet = new HashSet<string>();
-                        dependents.Remove(listDependees[i]);
-                        dependents.Add(listDependees[i], newSet);
-                    }
-                }
-                else
-                {
-                    dependents.Add(listDependees[i], new HashSet<string>() { s });
-                }
+                RemoveDependency(dependee, s);
             }
-            orderedPairs += (listDependees.Count - oldDependees.Count);
+            foreach (String newDependee in newDependees)
+            {
+                AddDependency(newDependee, s);
+            }
         }
+
     }
 }

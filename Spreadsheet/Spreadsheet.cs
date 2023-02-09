@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -16,7 +17,7 @@ namespace SS
     /// get a list of all of the nonempty cells in the spreadsheet, and
     /// get the direct dependents of a cell.
     /// </summary>
-    internal class Spreadsheet : AbstractSpreadsheet
+    public class Spreadsheet : AbstractSpreadsheet
     {
         //Fields
         private Dictionary<string, Cell> cells;
@@ -47,10 +48,13 @@ namespace SS
         /// </returns>
         public override object GetCellContents(string name)
         {
+            if (!isVar(name))
+                throw new InvalidNameException();
+
             if (cells.TryGetValue(name, out Cell? cell))
                 return cell.getContents();
             else
-                throw new InvalidNameException();
+                return "";
         }
 
         /// <summary>
@@ -86,13 +90,22 @@ namespace SS
         /// </returns>
         public override ISet<string> SetCellContents(string name, double number)
         {
-            HashSet<string> dependents = GetDirectDependents(name).ToHashSet();
-            if (cells.TryGetValue(name, out Cell? cell))
-                cell.setContents(number);
-            else
+            if (!isVar(name))
                 throw new InvalidNameException();
 
-            return GetCellsToRecalculate(dependents).ToHashSet();
+            if (!cells.TryGetValue(name, out Cell? cell))
+            {
+                cells.Add(name, new Cell(name, number));
+            }
+            else
+            {
+                cells.Remove(name);
+                cell.setContents(number);
+                cells.Add(name, cell);
+            }
+            spreadsheet.ReplaceDependees(name, new List<string>());
+
+            return GetCellsToRecalculate(GetDirectDependents(name).ToHashSet()).ToHashSet();
         }
 
         /// <summary>
@@ -124,13 +137,22 @@ namespace SS
         {
             if (text == null)
                 throw new ArgumentNullException();
-            if (cells.TryGetValue(name, out Cell? cell))
-                cell.setContents(text);
-            else
+            if (!isVar(name))
                 throw new InvalidNameException();
 
-            HashSet<string> dependents = GetDirectDependents(name).ToHashSet();
-            return GetCellsToRecalculate(dependents).ToHashSet();
+            if (!cells.TryGetValue(name, out Cell? cell))
+            {
+                cells.Add(name, new Cell(name, text));
+            }
+            else
+            {
+                cells.Remove(name);
+                cell.setContents(text);
+                cells.Add(name, cell);
+            }
+            spreadsheet.ReplaceDependees(name, new List<string>());
+
+            return GetCellsToRecalculate(GetDirectDependents(name).ToHashSet()).ToHashSet();
         }
 
         /// <summary>
@@ -167,16 +189,24 @@ namespace SS
         /// </returns>
         public override ISet<string> SetCellContents(string name, Formula formula)
         {
-            if (formula == null)
+            if (formula is null)
                 throw new ArgumentNullException();
-
-            if (cells.TryGetValue(name, out Cell? cell))
-                cell.setContents(formula);
-            else
+            if (!isVar(name))
                 throw new InvalidNameException();
 
-            HashSet<string> dependents = GetDirectDependents(name).ToHashSet();
-            return GetCellsToRecalculate(dependents).ToHashSet();
+            if (!cells.TryGetValue(name, out Cell? cell))
+            {
+                cells.Add(name, new Cell(name, formula));
+            }
+            else
+            {
+                cells.Remove(name);
+                cell.setContents(formula);
+                cells.Add(name, cell);
+            }
+            spreadsheet.ReplaceDependees(name, formula.GetVariables());
+
+            return GetCellsToRecalculate(GetDirectDependents(name).ToHashSet()).ToHashSet();
         }
 
         /// <summary>
@@ -212,11 +242,26 @@ namespace SS
         {
             if (name == null)
                 throw new ArgumentNullException();
-
-            if (spreadsheet.HasDependents(name))
-                return spreadsheet.GetDependents(name);
-            else
+            if (!isVar(name))
                 throw new InvalidNameException();
+
+            HashSet<string> dependents = new HashSet<string>();
+            if (spreadsheet.HasDependents(name))
+                dependents = spreadsheet.GetDependents(name).ToHashSet();
+
+            return dependents;
+        }
+
+        /// <summary>
+        /// Determines if the given string is a variable
+        /// </summary>
+        /// <param name="token"></param> the given string
+        /// <returns></returns> true or false
+        private bool isVar(string token)
+        {
+            if (Regex.IsMatch(token, @"^[a-zA-Z_](?: [a-zA-Z_]|\d)*"))
+                return true;
+            return false;
         }
     }
 
