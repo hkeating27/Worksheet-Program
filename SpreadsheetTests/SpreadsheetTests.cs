@@ -86,12 +86,12 @@ namespace SpreadsheetTests
             ss.SetCellContents("A1", new Formula("B2 - (J5 * 7)"));
             ss.SetCellContents("B2", 97);
             HashSet<string> dependents = ss.SetCellContents("J5", new Formula("7")).ToHashSet();
-            Assert.IsTrue(dependents.Count == 1);
+            Assert.IsTrue(dependents.Count == 2);
             Assert.IsTrue(dependents.Contains("A1"));
 
             ss.SetCellContents("A1", 74);
             HashSet<string> newDependents = ss.SetCellContents("J5", new Formula("7")).ToHashSet();
-            Assert.IsTrue(newDependents.Count == 0);
+            Assert.IsTrue(newDependents.Count == 1);
             Assert.IsFalse(newDependents.Contains("A1"));
         }
 
@@ -102,15 +102,44 @@ namespace SpreadsheetTests
             ss.SetCellContents("A1", new Formula("B2 - (J5 * 7)"));
             ss.SetCellContents("B2", new Formula("J5 / 2"));
             HashSet<string> dependents = ss.SetCellContents("J5", new Formula("7")).ToHashSet();
-            Assert.IsTrue(dependents.Count == 2);
+            Assert.IsTrue(dependents.Count == 3);
             Assert.IsTrue(dependents.Contains("A1"));
             Assert.IsTrue(dependents.Contains("B2"));
 
             ss.SetCellContents("A1", "new");
             ss.SetCellContents("B2", " also new");
             HashSet<string> newDependents = ss.SetCellContents("J5", new Formula("7")).ToHashSet();
-            Assert.IsTrue(newDependents.Count == 0);
+            Assert.IsTrue(newDependents.Count == 1);
             Assert.IsFalse(newDependents.Contains("A1"));
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(CircularException))]
+        public void SetCellContentsWorksAsExceptedCircularDependencySimple()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet();
+            ss.SetCellContents("Z1", new Formula("Z1 + 9"));
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(CircularException))]
+        public void SetCellContentsWorksAsExceptedCircularDependencyComplex()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet();
+            ss.SetCellContents("Z1", new Formula("A2 + 7"));
+            ss.SetCellContents("A2", new Formula("H87"));
+            ss.SetCellContents("H87", new Formula("XYZ9 / 2"));
+            ss.SetCellContents("XYZ9", new Formula("Z1 * (8 - 3)"));
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(CircularException))]
+        public void SetCellContentsWorksAsExceptedCircularDependencyDoesNotReplaceContents()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet();
+            ss.SetCellContents("Z1", 88);
+            ss.SetCellContents("Z1", new Formula("Z1 + 9"));
+            Assert.AreEqual(88, ss.GetCellContents("Z1"));
         }
 
         [TestMethod]

@@ -1,10 +1,12 @@
-﻿using SpreadsheetUtilities;
+﻿using Microsoft.VisualBasic;
+using SpreadsheetUtilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace SS
@@ -48,8 +50,7 @@ namespace SS
         /// </returns>
         public override object GetCellContents(string name)
         {
-            if (!isVar(name))
-                throw new InvalidNameException();
+            isNameValid(name);
 
             if (cells.TryGetValue(name, out Cell? cell))
                 return cell.getContents();
@@ -90,22 +91,19 @@ namespace SS
         /// </returns>
         public override ISet<string> SetCellContents(string name, double number)
         {
-            if (!isVar(name))
-                throw new InvalidNameException();
+            isNameValid(name);
 
+            HashSet<string> toRecalculate = new HashSet<string>();
             if (!cells.TryGetValue(name, out Cell? cell))
             {
                 cells.Add(name, new Cell(name, number));
             }
             else
             {
-                cells.Remove(name);
-                cell.setContents(number);
-                cells.Add(name, cell);
+                settingCellInSpreadsheet(name, number, cell);
             }
             spreadsheet.ReplaceDependees(name, new List<string>());
-
-            return GetCellsToRecalculate(GetDirectDependents(name).ToHashSet()).ToHashSet();
+            return findCellsToRecalculate(toRecalculate, name);
         }
 
         /// <summary>
@@ -135,24 +133,19 @@ namespace SS
         /// </returns>
         public override ISet<string> SetCellContents(string name, string text)
         {
-            if (text == null)
-                throw new ArgumentNullException();
-            if (!isVar(name))
-                throw new InvalidNameException();
+            hasExceptions(text, name);
 
+            HashSet<string> toRecalculate = new HashSet<string>();
             if (!cells.TryGetValue(name, out Cell? cell))
             {
                 cells.Add(name, new Cell(name, text));
             }
             else
             {
-                cells.Remove(name);
-                cell.setContents(text);
-                cells.Add(name, cell);
+                settingCellInSpreadsheet(name, text, cell);
             }
             spreadsheet.ReplaceDependees(name, new List<string>());
-
-            return GetCellsToRecalculate(GetDirectDependents(name).ToHashSet()).ToHashSet();
+            return findCellsToRecalculate(toRecalculate, name);
         }
 
         /// <summary>
@@ -189,24 +182,36 @@ namespace SS
         /// </returns>
         public override ISet<string> SetCellContents(string name, Formula formula)
         {
-            if (formula is null)
-                throw new ArgumentNullException();
-            if (!isVar(name))
-                throw new InvalidNameException();
+            hasExceptions(formula, name);
 
+            object? oldContents = null;
+            DependencyGraph tempSS = spreadsheet;
+            HashSet<string> toRecalculate = new HashSet<string>();
             if (!cells.TryGetValue(name, out Cell? cell))
             {
                 cells.Add(name, new Cell(name, formula));
             }
             else
             {
-                cells.Remove(name);
-                cell.setContents(formula);
-                cells.Add(name, cell);
+                oldContents = cell.getContents();
+                settingCellInSpreadsheet(name, formula, cell);
             }
-            spreadsheet.ReplaceDependees(name, formula.GetVariables());
 
-            return GetCellsToRecalculate(GetDirectDependents(name).ToHashSet()).ToHashSet();
+            try
+            {
+                spreadsheet.ReplaceDependees(name, formula.GetVariables());
+                return findCellsToRecalculate(toRecalculate, name);
+            }
+            catch
+            {
+                spreadsheet = tempSS;
+                if (oldContents == null)
+                    cells.Remove(name);
+                else
+                    if (cell != null) //won't ever be null but need to get rid of a warning
+                        settingCellInSpreadsheet(name, oldContents, cell);
+            }
+            throw new CircularException();
         }
 
         /// <summary>
@@ -240,10 +245,7 @@ namespace SS
         /// </returns>
         protected override IEnumerable<string> GetDirectDependents(string name)
         {
-            if (name == null)
-                throw new ArgumentNullException();
-            if (!isVar(name))
-                throw new InvalidNameException();
+            hasExceptions(name, name);
 
             HashSet<string> dependents = new HashSet<string>();
             if (spreadsheet.HasDependents(name))
@@ -262,6 +264,61 @@ namespace SS
             if (Regex.IsMatch(token, @"^[a-zA-Z_](?: [a-zA-Z_]|\d)*"))
                 return true;
             return false;
+        }
+
+        /// <summary>
+        /// Determines if the object is null and if the given name
+        /// is valid (determined by isVar).
+        /// </summary>
+        /// <param name="checkNull"></param> the object being checked
+        /// <param name="checkName"></param> the name being checked
+        /// <exception cref="ArgumentNullException"></exception> if the object is null, then throw this exception
+        /// <exception cref="InvalidNameException"></exception> if the name is not of a valid form, then
+        /// throw this exception
+        private void hasExceptions(object checkNull, string checkName)
+        {
+            if (checkNull is null)
+                throw new ArgumentNullException();
+            if (!isVar(checkName))
+                throw new InvalidNameException();
+        }
+
+        /// <summary>
+        /// Determines if the given name is valid (determined by isVar).
+        /// </summary>
+        /// <param name="checkName"></param> the name being checked
+        /// <exception cref="InvalidNameException"></exception> If the name is not of a valid form, then 
+        /// throw this exception
+        private void isNameValid(string checkName)
+        {
+            if (!isVar(checkName))
+                throw new InvalidNameException();
+        }
+
+        /// <summary>
+        /// Sets a cell's contents in the spreadsheet
+        /// </summary>
+        /// <param name="name"></param> the name of the cell whose contents are being changed
+        /// <param name="contents"></param> the contents being changed to
+        /// <param name="cell"></param> a reference to the cell being changed
+        private void settingCellInSpreadsheet(string name, object contents, Cell cell)
+        {
+            cells.Remove(name);
+            cell.setContents(contents);
+            cells.Add(name, cell);
+        }
+
+        /// <summary>
+        /// Uses the GetCellsToRecalculate method to find the cells to recalculate
+        /// </summary>
+        /// <param name="toRecalculate"></param> a HashSet that holds the names of all the cells to recalculate
+        /// <param name="name"></param> the name of the cell to start the search of cells to recalculate from
+        /// <returns></returns> toRecalculate (or throws a CircularException if a cycle is found)
+        private HashSet<string> findCellsToRecalculate(HashSet<string> toRecalculate, string name)
+        {
+            toRecalculate = GetCellsToRecalculate(GetDirectDependents(name).ToHashSet()).ToHashSet();
+            toRecalculate.Add(name);
+            return toRecalculate;
         }
     }
 
