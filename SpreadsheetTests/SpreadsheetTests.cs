@@ -6,6 +6,9 @@ namespace SpreadsheetTests
     [TestClass]
     public class SpreadsheetTests
     {
+        /// <summary>
+        /// See title
+        /// </summary>
         [TestMethod]
         [ExpectedException(typeof(InvalidNameException))]
         public void SetCellContentsDoubleWorksAsExceptedInvaidName()
@@ -14,14 +17,20 @@ namespace SpreadsheetTests
             ss.SetCellContents("9_A", 98);
         }
 
+        /// <summary>
+        /// See title
+        /// </summary>
         [TestMethod]
         [ExpectedException(typeof(InvalidNameException))]
-        public void SetCellContentsStringWorksAsExceptedInvalidName()
+        public void SetCellContentsWorksStringAsExceptedInvalidName()
         {
             AbstractSpreadsheet ss = new Spreadsheet();
             ss.SetCellContents("%7", "invalid");
         }
 
+        /// <summary>
+        /// See title
+        /// </summary>
         [TestMethod]
         [ExpectedException(typeof(InvalidNameException))]
         public void SetCellContentsFormulaWorksAsExceptedInvalidName()
@@ -30,6 +39,9 @@ namespace SpreadsheetTests
             ss.SetCellContents("*1_", new Formula("A1"));
         }
 
+        /// <summary>
+        /// See title
+        /// </summary>
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
         public void SetCellContentsStringWorksAsExceptedNullArgument()
@@ -39,6 +51,9 @@ namespace SpreadsheetTests
             ss.SetCellContents("A2", str);
         }
 
+        /// <summary>
+        /// See title
+        /// </summary>
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
         public void SetCellContentsFormulaWorksAsExceptedNullArgument()
@@ -48,6 +63,9 @@ namespace SpreadsheetTests
             ss.SetCellContents("A2", formula);
         }
 
+        /// <summary>
+        /// See title
+        /// </summary>
         [TestMethod]
         public void SetCellContentsWorksAsExceptedEmptySS()
         {
@@ -55,6 +73,9 @@ namespace SpreadsheetTests
             Assert.AreEqual("", ss.GetCellContents("A1"));
         }
 
+        /// <summary>
+        /// See title
+        /// </summary>
         [TestMethod]
         public void SetCellContentsWorksAsExceptedSimple()
         {
@@ -67,6 +88,9 @@ namespace SpreadsheetTests
             Assert.IsTrue(ss.GetCellContents("A3").Equals(new Formula("3 + 2")));
         }
 
+        /// <summary>
+        /// See title
+        /// </summary>
         [TestMethod]
         public void SetCellContentsWorksAsExceptedWhenResettingExistingCell()
         {
@@ -79,6 +103,9 @@ namespace SpreadsheetTests
             Assert.AreEqual("A1", ss.GetCellContents("B1"));
         }
 
+        /// <summary>
+        /// See title
+        /// </summary>
         [TestMethod]
         public void SetCellContentsWorksAsExceptedChangingFormulaToDouble()
         {
@@ -95,6 +122,9 @@ namespace SpreadsheetTests
             Assert.IsFalse(newDependents.Contains("A1"));
         }
 
+        /// <summary>
+        /// See title
+        /// </summary>
         [TestMethod]
         public void SetCellContentsWorksAsExceptedChangingFormulaToString()
         {
@@ -113,6 +143,9 @@ namespace SpreadsheetTests
             Assert.IsFalse(newDependents.Contains("A1"));
         }
 
+        /// <summary>
+        /// See title
+        /// </summary>
         [TestMethod]
         [ExpectedException(typeof(CircularException))]
         public void SetCellContentsWorksAsExceptedCircularDependencySimple()
@@ -121,6 +154,9 @@ namespace SpreadsheetTests
             ss.SetCellContents("Z1", new Formula("Z1 + 9"));
         }
 
+        /// <summary>
+        /// See title
+        /// </summary>
         [TestMethod]
         [ExpectedException(typeof(CircularException))]
         public void SetCellContentsWorksAsExceptedCircularDependencyComplex()
@@ -132,6 +168,9 @@ namespace SpreadsheetTests
             ss.SetCellContents("XYZ9", new Formula("Z1 * (8 - 3)"));
         }
 
+        /// <summary>
+        /// See title
+        /// </summary>
         [TestMethod]
         [ExpectedException(typeof(CircularException))]
         public void SetCellContentsWorksAsExceptedCircularDependencyDoesNotReplaceContents()
@@ -142,6 +181,9 @@ namespace SpreadsheetTests
             Assert.AreEqual(88, ss.GetCellContents("Z1"));
         }
 
+        /// <summary>
+        /// See title
+        /// </summary>
         [TestMethod]
         [ExpectedException(typeof(InvalidNameException))]
         public void GetCellContentsWorksAsExceptedInvalidName()
@@ -151,6 +193,9 @@ namespace SpreadsheetTests
             ss.GetCellContents("1Z");
         }
 
+        /// <summary>
+        /// See title
+        /// </summary>
         [TestMethod]
         public void GetCellContentsWorksAsExceptedEmpty()
         {
@@ -158,6 +203,9 @@ namespace SpreadsheetTests
             Assert.AreEqual("", ss.GetCellContents("Z33"));
         }
 
+        /// <summary>
+        /// See title
+        /// </summary>
         [TestMethod]
         public void GetCellContentsWorksAsExceptedValidName()
         {
@@ -170,6 +218,9 @@ namespace SpreadsheetTests
             Assert.IsTrue(ss.GetCellContents("AA62").Equals(new Formula("3")));
         }
 
+        /// <summary>
+        /// See title
+        /// </summary>
         [TestMethod]
         public void GetNamesOfAllNonemptyCellsWorksAsExpectedSimple()
         {
@@ -183,6 +234,9 @@ namespace SpreadsheetTests
             Assert.AreEqual("BB1", nonEmptyCells[2]);
         }
 
+        /// <summary>
+        /// See title
+        /// </summary>
         [TestMethod]
         public void GetNamesOfAllNonemptyCellsWorksAsExpectedEmpty()
         {
@@ -191,6 +245,9 @@ namespace SpreadsheetTests
             Assert.IsTrue(nonEmptyCells.Count == 0);
         }
 
+        /// <summary>
+        /// See title
+        /// </summary>
         [TestMethod]
         public void GetNamesOfAllNonemptyCellsWorksAsExpectedTechnicallyNotEmpty()
         {
