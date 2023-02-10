@@ -3,6 +3,10 @@ using SS;
 
 namespace SpreadsheetTests
 {
+    /// <summary>
+    /// This is a test class designed to hold all of the
+    /// unit tests for the Spreadsheet class.
+    /// </summary>
     [TestClass]
     public class SpreadsheetTests
     {

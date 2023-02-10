@@ -303,6 +303,7 @@ namespace SS
         /// <param name="cell"></param> a reference to the cell being changed
         private void settingCellInSpreadsheet(string name, object contents, Cell cell)
         {
+
             cells.Remove(name);
             cell.setContents(contents);
             cells.Add(name, cell);
