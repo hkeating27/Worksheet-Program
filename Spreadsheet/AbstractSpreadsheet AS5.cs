@@ -1,17 +1,73 @@
-﻿using Microsoft.VisualBasic;
-using SpreadsheetUtilities;
+﻿// Assignment 5
+// Written by Joe Zachary for CS 3500, September 2013
+// Version 1.8
+// Revision history:  
+//   Version 1.1 9/20/12 12:59 p.m.  Fixed comment that describes circular dependencies
+//   Version 1.2 9/20/12 1:38 p.m.   Changed return type of GetCellContents to object
+//   Version 1.3 9/24/12 8:41 a.m.   Modified the specification of GetCellsToRecalculate by 
+//                                   adding a requirement for the names parameter
+// Branched from PS4Skeleton
+//   Version 1.4                     Branched from PS4Skeleton
+//           Edited class comment for AbstractSpreadsheet
+//           Made the three SetCellContents methods protected
+//           Added a new method SetContentsOfCell.  This method abstract.
+//           Added a new method GetCellValue.  This method is abstract.
+//           Added a new property Changed.  This property is abstract.
+//           Added a new method Save.  This method is abstract.
+//           Added a new method GetSavedVersion.  This method is abstract.
+//           Added a new class SpreadsheetReadWriteException.
+//           Added IsValid, Normalize, and Version properties
+//           Added a constructor for AbstractSpreadsheet
+
+// Revision history:
+//    Version 1.5 9/28/12 2:22 p.m.   Fixed example in comment for Save
+//    Version 1.6 9/29/12 11:07 a.m.  Put a constructor into SpreadsheetReadWriteException
+//    Version 1.7 9/29/12 11:14 a.m.  Added missing </summary> tag to comment
+//    
+//    Version 1.8 (Daniel Kopta)      Unified error checking for setting cell contents
+//                (Fall 2019)         SetCellContents signatures changed to return IList
+//    Version 1.9 (Jim de St. Germain) Updated documentation
+//    Version 1.91 (Jim de St. Germain) Removed Null requirement checking (C# supports non-nullables!)
+//                            
+
+
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using static System.Net.Mime.MediaTypeNames;
+using SpreadsheetUtilities;
 
 namespace SS
 {
+    /// <summary>
+    /// Thrown to indicate that a change to a cell will cause a circular dependency.
+    /// </summary>
+    public class CircularException : Exception
+    {
+    }
+
+
+    /// <summary>
+    /// Thrown to indicate that a name parameter is invalid, e.g., "" (empty).
+    /// </summary>
+    public class InvalidNameException : Exception
+    {
+    }
+
+
+    /// <summary>
+    /// Thrown to indicate that a read or write attempt has failed.
+    /// </summary>
+    public class SpreadsheetReadWriteException : Exception
+    {
+        /// <summary>
+        /// Creates the exception with a message
+        /// </summary>
+        public SpreadsheetReadWriteException(string msg)
+            : base(msg)
+        {
+        }
+    }
+
+
     /// <summary>
     /// <para>
     ///     An AbstractSpreadsheet object represents the state of a simple spreadsheet.  A 
@@ -84,95 +140,8 @@ namespace SS
     ///     dependency.
     /// </para>
     /// </summary>
-    public class Spreadsheet : AbstractSpreadsheet
+    public abstract class AbstractSpreadsheet
     {
-        //Fields
-        private Dictionary<string, Cell> cells;
-        private DependencyGraph spreadsheet;
-        private Func<string, bool> isValid;
-        private Func<string, string> normalize;
-        private string version;
-
-        /// <summary>
-        /// True if this spreadsheet has been modified since it was created or saved                  
-        /// (whichever happened most recently); false otherwise.
-        /// </summary>
-        public override bool Changed 
-        {
-            get => Changed;
-            protected set => Changed = value;
-        }
-
-        /// <summary>
-        /// Creates a new spreadsheet.
-        /// </summary>
-        public Spreadsheet() : this(s => true, s => s, "default")
-        {
-            //See Second Constructor
-        }
-
-        /// <summary>
-        /// Constructs an abstract spreadsheet by recording its variable validity test,
-        /// its normalization method, and its version information.  
-        /// </summary>
-        /// 
-        /// <remarks>
-        ///   The variable validity test is used throughout to determine whether a string that consists of 
-        ///   one or more letters followed by one or more digits is a valid cell name.  The variable
-        ///   equality test should be used throughout to determine whether two variables are equal.
-        /// </remarks>
-        /// 
-        /// <param name="isValid">   defines what valid variables look like for the application</param>
-        /// <param name="normalize"> defines a normalization procedure to be applied to all valid variable strings</param>
-        /// <param name="version">   defines the version of the spreadsheet (should it be saved)</param>
-        public Spreadsheet(Func<string, bool> isValid, Func<string, string> normalize, string version)
-        {
-            this.cells       = new Dictionary<string, Cell>();
-            this.spreadsheet = new DependencyGraph();
-            this.isValid     = isValid;
-            this.normalize   = normalize;
-            this.version     = version;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="fileName"></param>
-        /// <param name="isValid"></param>
-        /// <param name="normalize"></param>
-        /// <param name="version"></param>
-        public Spreadsheet(string fileName, Func<string, bool> isValid, Func<string, string> normalize, string version)
-        {
-            this.cells = new Dictionary<string, Cell>();
-            this.spreadsheet = new DependencyGraph();
-            this.isValid = isValid;
-            this.normalize = normalize;
-            this.version = version;
-        }
-
-        /// <summary>
-        ///   Returns the contents (as opposed to the value) of the named cell.
-        /// </summary>
-        /// 
-        /// <exception cref="InvalidNameException"> 
-        ///   Thrown if the name is null or invalid
-        /// </exception>
-        /// 
-        /// <param name="name">The name of the spreadsheet cell to query</param>
-        /// 
-        /// <returns>
-        ///   The return value should be either a string, a double, or a Formula.
-        ///   See the class header summary 
-        /// </returns>
-        public override object GetCellContents(string name)
-        {
-            isNameValid(name);
-
-            if (cells.TryGetValue(name, out Cell? cell))
-                return cell.getContents();
-            else
-                return "";
-        }
 
         /// <summary>
         ///   Returns the names of all non-empty cells.
@@ -183,10 +152,23 @@ namespace SS
         ///     the names of all the non-empty cells in the spreadsheet.  If 
         ///     all cells are empty then an IEnumerable with zero values will be returned.
         /// </returns>
-        public override IEnumerable<string> GetNamesOfAllNonemptyCells()
-        {
-            return cells.Keys;
-        }
+        public abstract IEnumerable<String> GetNamesOfAllNonemptyCells();
+
+        /// <summary>
+        ///   Returns the contents (as opposed to the value) of the named cell.
+        /// </summary>
+        /// 
+        /// <exception cref="InvalidNameException"> 
+        ///   Thrown if the name is invalid: blank/empty/""
+        /// </exception>
+        /// 
+        /// <param name="name">The name of the spreadsheet cell to query</param>
+        /// 
+        /// <returns>
+        ///   The return value should be either a string, a double, or a Formula.
+        ///   See the class header summary 
+        /// </returns>
+        public abstract object GetCellContents(String name);
 
         /// <summary>
         ///  Set the contents of the named cell to the given number.  
@@ -221,22 +203,7 @@ namespace SS
         ///     evaluated, followed by B1 re-evaluated, followed by C1 re-evaluated.
         ///   </para>
         /// </returns>
-        protected override IList<string> SetCellContents(string name, double number)
-        {
-            isNameValid(name);
-
-            List<string> toRecalculate = new List<string>();
-            if (!cells.TryGetValue(name, out Cell? cell))
-            {
-                cells.Add(name, new Cell(name, number));
-            }
-            else
-            {
-                settingCellInSpreadsheet(name, number, cell);
-            }
-            spreadsheet.ReplaceDependees(name, new List<string>());
-            return findCellsToRecalculate(toRecalculate, name);
-        }
+        protected abstract IList<String> SetCellContents(String name, double number);
 
         /// <summary>
         /// The contents of the named cell becomes the text.  
@@ -271,22 +238,7 @@ namespace SS
         ///     evaluated, followed by B1 re-evaluated, followed by C1 re-evaluated.
         ///   </para>
         /// </returns>
-        protected override IList<string> SetCellContents(string name, string text)
-        {
-            isNameValid(name);
-
-            List<string> toRecalculate = new List<string>();
-            if (!cells.TryGetValue(name, out Cell? cell))
-            {
-                cells.Add(name, new Cell(name, text));
-            }
-            else
-            {
-                settingCellInSpreadsheet(name, text, cell);
-            }
-            spreadsheet.ReplaceDependees(name, new List<string>());
-            return findCellsToRecalculate(toRecalculate, name);
-        }
+        protected abstract IList<String> SetCellContents(String name, String text);
 
         /// <summary>
         /// Set the contents of the named cell to the formula.  
@@ -327,39 +279,8 @@ namespace SS
         ///     evaluated, followed by B1 re-evaluated, followed by C1 re-evaluated.
         ///   </para>
         /// </returns>
-        protected override IList<string> SetCellContents(string name, Formula formula)
-        {
-            isNameValid(name);
+        protected abstract IList<String> SetCellContents(String name, Formula formula);
 
-            object? oldContents = null;
-            DependencyGraph tempSS = spreadsheet;
-            List<string> toRecalculate = new List<string>();
-            if (!cells.TryGetValue(name, out Cell? cell))
-            {
-                cells.Add(name, new Cell(name, formula));
-            }
-            else
-            {
-                oldContents = cell.getContents();
-                settingCellInSpreadsheet(name, formula, cell);
-            }
-
-            try
-            {
-                spreadsheet.ReplaceDependees(name, formula.GetVariables());
-                return findCellsToRecalculate(toRecalculate, name);
-            }
-            catch
-            {
-                spreadsheet = tempSS;
-                if (oldContents == null)
-                    cells.Remove(name);
-                else
-                    if (cell != null) //won't ever be null but need to get rid of a warning
-                        settingCellInSpreadsheet(name, oldContents, cell);
-            }
-            throw new CircularException();
-        }
 
         /// <summary>
         /// Returns an enumeration, without duplicates, of the names of all cells whose
@@ -386,68 +307,109 @@ namespace SS
         ///   <para>The direct dependents of A1 are B1 and C1</para>
         /// 
         /// </returns>
-        protected override IEnumerable<string> GetDirectDependents(string name)
-        {
-            isNameValid(name);
+        protected abstract IEnumerable<String> GetDirectDependents(String name);
 
-            List<string> dependents = new List<string>();
-            if (spreadsheet.HasDependents(name))
-                dependents = spreadsheet.GetDependents(name).ToList();
-
-            return dependents;
-        }
 
         /// <summary>
-        /// Determines if the given string is a variable
+        ///   <para>
+        ///     Given a list of names of cells that have changed, return a list of
+        ///     all cells that must be recalculated.
+        ///   </para>
+        ///   
+        ///   <requires>
+        ///     Invariant: Requires that if names contains s,
+        ///     then s must be a valid cell name.
+        ///   </requires>
+        /// 
+        ///   <para> 
+        ///     WARNING: THIS METHOD DEPENDS ON THE ABSTRACT METHOD GetDirectDependents.
+        ///     IT WON'T WORK UNTIL GetDirectDependents IS IMPLEMENTED CORRECTLY.
+        ///   </para>
         /// </summary>
-        /// <param name="token"></param> the given string
-        /// <returns></returns> true or false
-        private bool isVar(string token)
+        /// 
+        /// <exception cref="CircularException"> 
+        ///   If any of the named cells are involved in a circular dependency,
+        ///   throw a CircularException.
+        /// </exception>
+        /// 
+        /// <param name="names">The set of Names to Recalculate the values of.</param>
+        /// 
+        /// <returns>
+        ///   <para>
+        ///     Returns an enumeration of the names of all cells whose values must
+        ///     be recalculated, assuming that the contents of each cell named in names has changed.
+        ///     The names are enumerated in the order in which the calculations should be done.  
+        ///   </para>
+        ///   
+        ///   <para>For example, suppose that:</para>
+        ///   
+        ///   <list type="bullet">
+        ///      <item>A1 contains 5</item>
+        ///      <item>B1 contains 7</item>
+        ///      <item>C1 contains the formula A1 + B1</item>
+        ///      <item>D1 contains the formula A1 * C1</item>
+        ///      <item>E1 contains 15</item>
+        ///   </list>
+        /// 
+        ///   <para>
+        ///     If A1 and B1 have changed, then A1, B1, and C1, and D1 must be recalculated,
+        ///     and they must be recalculated in either the order A1,B1,C1,D1 or B1,A1,C1,D1.
+        ///     This method will produce one of those enumerations.
+        ///   </para>
+        /// </returns>
+        protected IEnumerable<String> GetCellsToRecalculate(ISet<String> names)
         {
-            if (Regex.IsMatch(token, @"^[a-zA-Z](?: [a-zA-Z]|\d)*"))
-                return true;
-            return false;
+            LinkedList<String> changed = new LinkedList<String>();
+            HashSet<String>    visited = new HashSet<String>();
+            foreach (String name in names)
+            {
+                if (!visited.Contains(name))
+                {
+                    Visit(name, name, visited, changed);
+                }
+            }
+            return changed;
         }
 
+
         /// <summary>
-        /// Determines if the given name is valid (determined by isVar).
+        ///   A convenience method for invoking the other version of GetCellsToRecalculate
+        ///   with a singleton set of names.  See the other version for details.
+        ///   <see cref="GetCellsToRecalculate(ISet{string})"/>
         /// </summary>
-        /// <param name="checkName"></param> the name being checked
-        /// <exception cref="InvalidNameException"></exception> If the name is not of a valid form, then 
-        /// throw this exception
-        private void isNameValid(string checkName)
+        ///
+        /// <param name="name"> The name of a given cell that has just changed value.</param>
+        ///
+        /// <returns> 
+        ///   <see cref="GetCellsToRecalculate(ISet{string})"/> A list of all cells
+        ///   that now must be recalculated.
+        /// </returns>
+        protected IEnumerable<String> GetCellsToRecalculate(String name)
         {
-            if (!isVar(checkName))
-                throw new InvalidNameException();
-            if (!isValid(normalize(checkName)))
-                throw new InvalidNameException();
+            return GetCellsToRecalculate(new HashSet<String>() { name });
         }
 
-        /// <summary>
-        /// Sets a cell's contents in the spreadsheet
-        /// </summary>
-        /// <param name="name"></param> the name of the cell whose contents are being changed
-        /// <param name="contents"></param> the contents being changed to
-        /// <param name="cell"></param> a reference to the cell being changed
-        private void settingCellInSpreadsheet(string name, object contents, Cell cell)
-        {
-
-            cells.Remove(name);
-            cell.setContents(contents);
-            cells.Add(normalize(name), cell);
-        }
 
         /// <summary>
-        /// Uses the GetCellsToRecalculate method to find the cells to recalculate
+        /// A helper for the GetCellsToRecalculate method.
+        /// 
+        ///   -- You should fully comment what is going on below using XML tags as appropriate --
         /// </summary>
-        /// <param name="toRecalculate"></param> a HashSet that holds the names of all the cells to recalculate
-        /// <param name="name"></param> the name of the cell to start the search of cells to recalculate from
-        /// <returns></returns> toRecalculate (or throws a CircularException if a cycle is found)
-        private List<string> findCellsToRecalculate(List<string> toRecalculate, string name)
+        private void Visit(String start, String name, ISet<String> visited, LinkedList<String> changed)
         {
-            toRecalculate = GetCellsToRecalculate(GetDirectDependents(name).ToHashSet()).ToList();
-            toRecalculate.Add(name);
-            return toRecalculate;
+            visited.Add(name);
+            foreach (String n in GetDirectDependents(name))
+            {
+                if (n.Equals(start))
+                {
+                    throw new CircularException();
+                }
+                else if (!visited.Contains(n))
+                {
+                    Visit(start, n, visited, changed);
+                }
+            }
+            changed.AddFirst(name);
         }
 
         /// <summary>
@@ -518,14 +480,50 @@ namespace SS
         ///           A1, then B1, then C1, the integrity of the Spreadsheet is maintained.
         ///       </para>
         /// </returns>
-        public override IList<string> SetContentsOfCell(string name, string content)
+        public abstract IList<String> SetContentsOfCell(String name, String content);
+
+        /// <summary>
+        /// True if this spreadsheet has been modified since it was created or saved                  
+        /// (whichever happened most recently); false otherwise.
+        /// </summary>
+        public abstract bool Changed { get; protected set; }
+
+        /// <summary>
+        /// Method used to determine whether a string that consists of one or more letters
+        /// followed by one or more digits is a valid variable name.
+        /// </summary>
+        public Func<string, bool> IsValid { get; protected set; }
+
+        /// <summary>
+        /// Method used to convert a cell name to its standard form.  For example,
+        /// Normalize might convert names to upper case.
+        /// </summary>
+        public Func<string, string> Normalize { get; protected set; }
+
+        /// <summary>
+        /// Version information
+        /// </summary>
+        public string Version { get; protected set; }
+
+        /// <summary>
+        /// Constructs an abstract spreadsheet by recording its variable validity test,
+        /// its normalization method, and its version information.  
+        /// </summary>
+        /// 
+        /// <remarks>
+        ///   The variable validity test is used throughout to determine whether a string that consists of 
+        ///   one or more letters followed by one or more digits is a valid cell name.  The variable
+        ///   equality test should be used throughout to determine whether two variables are equal.
+        /// </remarks>
+        /// 
+        /// <param name="isValid">   defines what valid variables look like for the application</param>
+        /// <param name="normalize"> defines a normalization procedure to be applied to all valid variable strings</param>
+        /// <param name="version">   defines the version of the spreadsheet (should it be saved)</param>
+        public AbstractSpreadsheet(Func<string, bool> isValid, Func<string, string> normalize, string version)
         {
-            if (Double.TryParse(content, out double number))
-                return SetCellContents(name, number);
-            else if (content[0] == '=')
-                return SetCellContents(name, content.Substring(1));
-            else
-                return SetCellContents(name, content);
+            this.IsValid = isValid;
+            this.Normalize = normalize;
+            this.Version = version;
         }
 
         /// <summary>
@@ -546,10 +544,7 @@ namespace SS
         /// 
         /// <param name="filename"> The name of the file (including path, if necessary)</param>
         /// <returns>Returns the version information of the spreadsheet saved in the named file.</returns>
-        public override string GetSavedVersion(string filename)
-        {
-            throw new NotImplementedException();
-        }
+        public abstract string GetSavedVersion(String filename);
 
         /// <summary>
         /// Writes the contents of this spreadsheet to the named file using an XML format.
@@ -572,10 +567,7 @@ namespace SS
         /// If there are any problems opening, writing, or closing the file, the method should throw a
         /// SpreadsheetReadWriteException with an explanatory message.
         /// </summary>
-        public override void Save(string filename)
-        {
-            throw new NotImplementedException();
-        }
+        public abstract void Save(String filename);
 
         /// <summary>
         /// If name is invalid, throws an InvalidNameException.
@@ -591,104 +583,7 @@ namespace SS
         ///   Returns the value (as opposed to the contents) of the named cell.  The return
         ///   value should be either a string, a double, or a SpreadsheetUtilities.FormulaError.
         /// </returns>
-        public override object GetCellValue(string name)
-        {
-            isNameValid(name);
+        public abstract object GetCellValue(String name);
 
-            if (cells.TryGetValue(name, out Cell? cell))
-                return cell.getValue();
-            return "";
-        }
-
-        /// <summary>
-        /// This class is meant to represent a cell in a spreadsheet. A cell contains
-        /// a name and the contents of the cell. The contents of a cell can be a string, a double,
-        /// or a formula.
-        /// </summary>
-        internal class Cell : Spreadsheet
-        {
-            //Fields
-            private string name;
-            private object contents;
-            private object value;
-
-            /// <summary>
-            /// Creates a new cell with a string as the contents.
-            /// </summary>
-            /// <param name="name"></param> the name of the cell
-            /// <param name="contents"></param> the contents contained in the cell
-            public Cell(string name, string contents)
-            {
-                this.name     = name;
-                this.contents = contents;
-                this.value    = contents;
-            }
-
-            /// <summary>
-            /// Creates a new cell with a double as the contents
-            /// </summary>
-            /// <param name="name"></param> the name of the cell
-            /// <param name="contents"></param> the contents contained in the cell
-            public Cell(string name, double contents)
-            {
-                this.name     = name;
-                this.contents = contents;
-                this.value    = contents;
-            }
-
-            /// <summary>
-            /// Creates a new cell with a formula as the contents
-            /// </summary>
-            /// <param name="name"></param> the name of the cell
-            /// <param name="contents"></param> the contents contained in the cell
-            public Cell(string name, Formula contents)
-            {
-                this.name = name;
-                this.contents = contents;
-                this.value = contents.Evaluate(lookup);
-            }
-
-            /// <summary>
-            /// Sets the contents of the cell
-            /// </summary>
-            /// <param name="contents"></param> the new contents of the cell
-            public void setContents(object contents)
-            {
-                this.contents = contents;
-            }
-
-            /// <summary>
-            /// Retrieves the contents of the cell
-            /// </summary>
-            /// <returns>the contents of the cell</returns>
-            public object getContents()
-            {
-                return contents;
-            }
-
-            /// <summary>
-            /// Retrieves the value of the cell
-            /// </summary>
-            /// <returns> the value of the cell</returns>
-            public object getValue()
-            {
-                return value;
-            }
-
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <param name="name"></param>
-            /// <returns></returns>
-            /// <exception cref=""></exception>
-            public double lookup(string name)
-            {
-                object cellValue = GetCellValue(name);
-                if (cellValue.GetType() == typeof(double))
-                    return (double)cellValue;
-                else
-                    return 2;
-            }
-        }
     }
 }
