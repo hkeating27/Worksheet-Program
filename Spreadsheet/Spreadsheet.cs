@@ -7,6 +7,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.Linq;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -125,13 +126,14 @@ namespace SS
         /// <param name="isValid">   defines what valid variables look like for the application</param>
         /// <param name="normalize"> defines a normalization procedure to be applied to all valid variable strings</param>
         /// <param name="version">   defines the version of the spreadsheet (should it be saved)</param>
-        public Spreadsheet(Func<string, bool> isValid, Func<string, string> normalize, string version)
+        public Spreadsheet(Func<string, bool> isValid, Func<string, string> normalize, string version) : base(isValid, normalize, version)
         {
             this.cells       = new Dictionary<string, Cell>();
             this.spreadsheet = new DependencyGraph();
             this.isValid     = isValid;
             this.normalize   = normalize;
             this.version     = version;
+            Changed = true;
         }
 
         /// <summary>
@@ -141,13 +143,14 @@ namespace SS
         /// <param name="isValid"></param>
         /// <param name="normalize"></param>
         /// <param name="version"></param>
-        public Spreadsheet(string fileName, Func<string, bool> isValid, Func<string, string> normalize, string version)
+        public Spreadsheet(string fileName, Func<string, bool> isValid, Func<string, string> normalize, string version) : base(isValid, normalize, version)
         {
             this.cells = new Dictionary<string, Cell>();
             this.spreadsheet = new DependencyGraph();
             this.isValid = isValid;
             this.normalize = normalize;
             this.version = version;
+            Changed = true;
         }
 
         /// <summary>
@@ -168,7 +171,7 @@ namespace SS
         {
             isNameValid(name);
 
-            if (cells.TryGetValue(name, out Cell? cell))
+            if (cells.TryGetValue(normalize(name), out Cell? cell))
                 return cell.getContents();
             else
                 return "";
@@ -226,16 +229,16 @@ namespace SS
             isNameValid(name);
 
             List<string> toRecalculate = new List<string>();
-            if (!cells.TryGetValue(name, out Cell? cell))
+            if (!cells.TryGetValue(normalize(name), out Cell? cell))
             {
-                cells.Add(name, new Cell(name, number));
+                cells.Add(normalize(name), new Cell(normalize(name), number));
             }
             else
             {
-                settingCellInSpreadsheet(name, number, cell);
+                settingCellInSpreadsheet(normalize(name), number, cell);
             }
-            spreadsheet.ReplaceDependees(name, new List<string>());
-            return findCellsToRecalculate(toRecalculate, name);
+            spreadsheet.ReplaceDependees(normalize(name), new List<string>());
+            return findCellsToRecalculate(toRecalculate, normalize(name));
         }
 
         /// <summary>
@@ -276,16 +279,16 @@ namespace SS
             isNameValid(name);
 
             List<string> toRecalculate = new List<string>();
-            if (!cells.TryGetValue(name, out Cell? cell))
+            if (!cells.TryGetValue(normalize(name), out Cell? cell))
             {
-                cells.Add(name, new Cell(name, text));
+                cells.Add(normalize(name), new Cell(normalize(name), text));
             }
             else
             {
-                settingCellInSpreadsheet(name, text, cell);
+                settingCellInSpreadsheet(normalize(name), text, cell);
             }
-            spreadsheet.ReplaceDependees(name, new List<string>());
-            return findCellsToRecalculate(toRecalculate, name);
+            spreadsheet.ReplaceDependees(normalize(name), new List<string>());
+            return findCellsToRecalculate(toRecalculate, normalize(name));
         }
 
         /// <summary>
@@ -330,33 +333,41 @@ namespace SS
         protected override IList<string> SetCellContents(string name, Formula formula)
         {
             isNameValid(name);
+            bool previouslyUnchanged;
+            if (Changed == false)
+                previouslyUnchanged = true;
+            else
+                previouslyUnchanged = false;
 
             object? oldContents = null;
-            DependencyGraph tempSS = spreadsheet;
+            DependencyGraph oldSS = spreadsheet;
             List<string> toRecalculate = new List<string>();
-            if (!cells.TryGetValue(name, out Cell? cell))
+            if (!cells.TryGetValue(normalize(name), out Cell? cell))
             {
-                cells.Add(name, new Cell(name, formula));
+                cells.Add(normalize(name), new Cell(normalize(name), formula));
             }
             else
             {
                 oldContents = cell.getContents();
-                settingCellInSpreadsheet(name, formula, cell);
+                settingCellInSpreadsheet(normalize(name), formula, cell);
             }
 
             try
             {
-                spreadsheet.ReplaceDependees(name, formula.GetVariables());
-                return findCellsToRecalculate(toRecalculate, name);
+                spreadsheet.ReplaceDependees(normalize(name), formula.GetVariables());
+                return findCellsToRecalculate(toRecalculate, normalize(name));
             }
             catch
             {
-                spreadsheet = tempSS;
+                spreadsheet = oldSS;
                 if (oldContents == null)
                     cells.Remove(name);
                 else
                     if (cell != null) //won't ever be null but need to get rid of a warning
-                        settingCellInSpreadsheet(name, oldContents, cell);
+                        settingCellInSpreadsheet(normalize(name), oldContents, cell);
+
+                if (previouslyUnchanged == true)
+                    Changed = false;
             }
             throw new CircularException();
         }
@@ -391,8 +402,8 @@ namespace SS
             isNameValid(name);
 
             List<string> dependents = new List<string>();
-            if (spreadsheet.HasDependents(name))
-                dependents = spreadsheet.GetDependents(name).ToList();
+            if (spreadsheet.HasDependents(normalize(name)))
+                dependents = spreadsheet.GetDependents(normalize(name)).ToList();
 
             return dependents;
         }
@@ -434,7 +445,7 @@ namespace SS
 
             cells.Remove(name);
             cell.setContents(contents);
-            cells.Add(normalize(name), cell);
+            cells.Add(name, cell);
         }
 
         /// <summary>
@@ -520,10 +531,11 @@ namespace SS
         /// </returns>
         public override IList<string> SetContentsOfCell(string name, string content)
         {
+            Changed = true;
             if (Double.TryParse(content, out double number))
                 return SetCellContents(name, number);
             else if (content[0] == '=')
-                return SetCellContents(name, content.Substring(1));
+                return SetCellContents(name, new Formula(content.Substring(1), normalize, isValid));
             else
                 return SetCellContents(name, content);
         }
@@ -548,7 +560,19 @@ namespace SS
         /// <returns>Returns the version information of the spreadsheet saved in the named file.</returns>
         public override string GetSavedVersion(string filename)
         {
-            throw new NotImplementedException();
+            try
+            {
+                XmlReader reader = XmlReader.Create(filename);
+                reader.ReadStartElement();
+                return reader.ReadContentAsString();
+            }
+            catch
+            {
+                // There are several possible errors that could occur and all of these possible errors
+                // need to be caught so that the SpreadsheetReadWriteException can be thrown.
+            }
+            throw new SpreadsheetReadWriteException("The given spreadsheet could not be read properly. This could be because the " +
+                "given file does not exist or the file is not in the proper form.");
         }
 
         /// <summary>
@@ -574,7 +598,27 @@ namespace SS
         /// </summary>
         public override void Save(string filename)
         {
-            throw new NotImplementedException();
+            XmlWriterSettings settings = new XmlWriterSettings();
+            settings.Indent = true;
+            settings.IndentChars = "  ";
+
+            using (XmlWriter writer = XmlWriter.Create(filename, settings))
+            {
+                writer.WriteStartDocument();
+                writer.WriteStartElement("spreadsheet " + version);
+
+                foreach(Cell cell in cells.Values)
+                {
+                    writer.WriteStartElement("<cell>");
+                    writer.WriteStartElement("<name>");
+                    writer.WriteStartAttribute("Cell ", cell.getName());
+                    writer.WriteEndAttribute();
+                    writer.WriteEndElement();
+                    writer.WriteStartElement("<contents>");
+                    writer.WriteEndElement();
+                }
+            }
+            Changed = false;
         }
 
         /// <summary>
@@ -595,7 +639,7 @@ namespace SS
         {
             isNameValid(name);
 
-            if (cells.TryGetValue(name, out Cell? cell))
+            if (cells.TryGetValue(normalize(name), out Cell? cell))
                 return cell.getValue();
             return "";
         }
@@ -675,19 +719,24 @@ namespace SS
                 return value;
             }
 
+            public string getName()
+            {
+                return name;
+            }
+
             /// <summary>
-            /// 
+            /// Looks up the value of the cell with the given cell name
             /// </summary>
-            /// <param name="name"></param>
-            /// <returns></returns>
-            /// <exception cref=""></exception>
+            /// <param name="name"> the name of a cell in the spreadsheet</param>
+            /// <returns> the value of the cell with the given cell name</returns>
+            /// <exception cref=""> Throws an argument exception if the value of the cell name is not a double</exception>
             public double lookup(string name)
             {
                 object cellValue = GetCellValue(name);
                 if (cellValue.GetType() == typeof(double))
                     return (double)cellValue;
                 else
-                    return 2;
+                    throw new ArgumentException();
             }
         }
     }

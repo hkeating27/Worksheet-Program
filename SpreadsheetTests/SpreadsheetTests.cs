@@ -15,10 +15,10 @@ namespace SpreadsheetTests
         /// </summary>
         [TestMethod]
         [ExpectedException(typeof(InvalidNameException))]
-        public void SetCellContentsDoubleWorksAsExceptedInvaidName()
+        public void SetCellContentsDoubleWorksAsExceptedIllegalName()
         {
             AbstractSpreadsheet ss = new Spreadsheet();
-            ss.SetCellContents("9_A", 98);
+            ss.SetContentsOfCell("_1A", "98");
         }
 
         /// <summary>
@@ -26,10 +26,10 @@ namespace SpreadsheetTests
         /// </summary>
         [TestMethod]
         [ExpectedException(typeof(InvalidNameException))]
-        public void SetCellContentsWorksStringAsExceptedInvalidName()
+        public void SetCellContentsWorksStringAsExceptedIllegalName()
         {
             AbstractSpreadsheet ss = new Spreadsheet();
-            ss.SetCellContents("%7", "invalid");
+            ss.SetContentsOfCell("%7", "invalid");
         }
 
         /// <summary>
@@ -37,34 +37,43 @@ namespace SpreadsheetTests
         /// </summary>
         [TestMethod]
         [ExpectedException(typeof(InvalidNameException))]
-        public void SetCellContentsFormulaWorksAsExceptedInvalidName()
+        public void SetCellContentsFormulaWorksAsExceptedIllegalName()
         {
             AbstractSpreadsheet ss = new Spreadsheet();
-            ss.SetCellContents("*1_", new Formula("A1"));
+            ss.SetContentsOfCell("*1_", "=A1");
         }
 
         /// <summary>
         /// See title
         /// </summary>
         [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
-        public void SetCellContentsStringWorksAsExceptedNullArgument()
+        [ExpectedException(typeof(InvalidNameException))]
+        public void SetCellContentsDoubleInvalidName()
         {
-            AbstractSpreadsheet ss = new Spreadsheet();
-            string? str = null;
-            ss.SetCellContents("A2", str);
+            AbstractSpreadsheet ss = new Spreadsheet(s => false, s=> s, "default");
+            ss.SetContentsOfCell("B2", "23");
         }
 
         /// <summary>
         /// See title
         /// </summary>
         [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
-        public void SetCellContentsFormulaWorksAsExceptedNullArgument()
+        [ExpectedException(typeof(InvalidNameException))]
+        public void SetCellContentsStringInvalidName()
         {
-            AbstractSpreadsheet ss = new Spreadsheet();
-            Formula? formula = null;
-            ss.SetCellContents("A2", formula);
+            AbstractSpreadsheet ss = new Spreadsheet(s => false, s => s, "default");
+            ss.SetContentsOfCell("J6", "Hello");
+        }
+
+        /// <summary>
+        /// See title
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(InvalidNameException))]
+        public void SetCellContentsFormulaInvalidName()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(s => false, s => s, "default");
+            ss.SetContentsOfCell("O0", "=8 + 9");
         }
 
         /// <summary>
@@ -84,9 +93,9 @@ namespace SpreadsheetTests
         public void SetCellContentsWorksAsExceptedSimple()
         {
             AbstractSpreadsheet ss = new Spreadsheet();
-            ss.SetCellContents("A1", "text");
-            ss.SetCellContents("B1", 32);
-            ss.SetCellContents("A3", new Formula("3 + 2"));
+            ss.SetContentsOfCell("A1", "text");
+            ss.SetContentsOfCell("B1", "32");
+            ss.SetContentsOfCell("A3", "=3+2");
             Assert.AreEqual("text", ss.GetCellContents("A1"));
             Assert.AreEqual(32.0, ss.GetCellContents("B1"));
             Assert.IsTrue(ss.GetCellContents("A3").Equals(new Formula("3 + 2")));
@@ -99,10 +108,10 @@ namespace SpreadsheetTests
         public void SetCellContentsWorksAsExceptedWhenResettingExistingCell()
         {
             AbstractSpreadsheet ss = new Spreadsheet();
-            ss.SetCellContents("A1", "text");
-            ss.SetCellContents("B1", 32);
-            ss.SetCellContents("A1", new Formula("3 + 2"));
-            ss.SetCellContents("B1", "A1");
+            ss.SetContentsOfCell("A1", "text");
+            ss.SetContentsOfCell("B1", "32");
+            ss.SetContentsOfCell("A1", "= 3 + 2");
+            ss.SetContentsOfCell("B1", "A1");
             Assert.IsTrue(ss.GetCellContents("A1").Equals(new Formula("3 + 2")));
             Assert.AreEqual("A1", ss.GetCellContents("B1"));
         }
@@ -114,14 +123,14 @@ namespace SpreadsheetTests
         public void SetCellContentsWorksAsExceptedChangingFormulaToDouble()
         {
             AbstractSpreadsheet ss = new Spreadsheet();
-            ss.SetCellContents("A1", new Formula("B2 - (J5 * 7)"));
-            ss.SetCellContents("B2", 97);
-            HashSet<string> dependents = ss.SetCellContents("J5", new Formula("7")).ToHashSet();
+            ss.SetContentsOfCell("A1", "=B2 - (J5 * 7)");
+            ss.SetContentsOfCell("B2", "97");
+            HashSet<string> dependents = ss.SetContentsOfCell("J5", "=7").ToHashSet();
             Assert.IsTrue(dependents.Count == 2);
             Assert.IsTrue(dependents.Contains("A1"));
 
-            ss.SetCellContents("A1", 74);
-            HashSet<string> newDependents = ss.SetCellContents("J5", new Formula("7")).ToHashSet();
+            ss.SetContentsOfCell("A1", "74");
+            HashSet<string> newDependents = ss.SetContentsOfCell("J5", "=7").ToHashSet();
             Assert.IsTrue(newDependents.Count == 1);
             Assert.IsFalse(newDependents.Contains("A1"));
         }
@@ -133,16 +142,16 @@ namespace SpreadsheetTests
         public void SetCellContentsWorksAsExceptedChangingFormulaToString()
         {
             AbstractSpreadsheet ss = new Spreadsheet();
-            ss.SetCellContents("A1", new Formula("B2 - (J5 * 7)"));
-            ss.SetCellContents("B2", new Formula("J5 / 2"));
-            HashSet<string> dependents = ss.SetCellContents("J5", new Formula("7")).ToHashSet();
+            ss.SetContentsOfCell("A1", "=B2 - (J5 * 7)");
+            ss.SetContentsOfCell("B2", "=J5 / 2");
+            HashSet<string> dependents = ss.SetContentsOfCell("J5", "=7").ToHashSet();
             Assert.IsTrue(dependents.Count == 3);
             Assert.IsTrue(dependents.Contains("A1"));
             Assert.IsTrue(dependents.Contains("B2"));
 
-            ss.SetCellContents("A1", "new");
-            ss.SetCellContents("B2", " also new");
-            HashSet<string> newDependents = ss.SetCellContents("J5", new Formula("7")).ToHashSet();
+            ss.SetContentsOfCell("A1", "new");
+            ss.SetContentsOfCell("B2", " also new");
+            HashSet<string> newDependents = ss.SetContentsOfCell("J5", "=7").ToHashSet();
             Assert.IsTrue(newDependents.Count == 1);
             Assert.IsFalse(newDependents.Contains("A1"));
         }
@@ -155,7 +164,7 @@ namespace SpreadsheetTests
         public void SetCellContentsWorksAsExceptedCircularDependencySimple()
         {
             AbstractSpreadsheet ss = new Spreadsheet();
-            ss.SetCellContents("Z1", new Formula("Z1 + 9"));
+            ss.SetContentsOfCell("Z1", "=Z1 + 9");
         }
 
         /// <summary>
@@ -166,10 +175,10 @@ namespace SpreadsheetTests
         public void SetCellContentsWorksAsExceptedCircularDependencyComplex()
         {
             AbstractSpreadsheet ss = new Spreadsheet();
-            ss.SetCellContents("Z1", new Formula("A2 + 7"));
-            ss.SetCellContents("A2", new Formula("H87"));
-            ss.SetCellContents("H87", new Formula("XYZ9 / 2"));
-            ss.SetCellContents("XYZ9", new Formula("Z1 * (8 - 3)"));
+            ss.SetContentsOfCell("Z1", "=A2 + 7");
+            ss.SetContentsOfCell("A2", "=H87");
+            ss.SetContentsOfCell("H87", "=XYZ9 / 2");
+            ss.SetContentsOfCell("XYZ9", "=Z1 * (8 - 3)");
         }
 
         /// <summary>
@@ -180,8 +189,8 @@ namespace SpreadsheetTests
         public void SetCellContentsWorksAsExceptedCircularDependencyDoesNotReplaceContents()
         {
             AbstractSpreadsheet ss = new Spreadsheet();
-            ss.SetCellContents("Z1", 88);
-            ss.SetCellContents("Z1", new Formula("Z1 + 9"));
+            ss.SetContentsOfCell("Z1", "88");
+            ss.SetContentsOfCell("Z1", "=Z1 + 9");
             Assert.AreEqual(88, ss.GetCellContents("Z1"));
         }
 
@@ -193,7 +202,7 @@ namespace SpreadsheetTests
         public void GetCellContentsWorksAsExceptedInvalidName()
         {
             AbstractSpreadsheet ss = new Spreadsheet();
-            ss.SetCellContents("Z1", "valid");
+            ss.SetContentsOfCell("Z1", "valid");
             ss.GetCellContents("1Z");
         }
 
@@ -214,11 +223,11 @@ namespace SpreadsheetTests
         public void GetCellContentsWorksAsExceptedValidName()
         {
             AbstractSpreadsheet ss = new Spreadsheet();
-            ss.SetCellContents("Z1", 1);
-            ss.SetCellContents("H7", "2");
-            ss.SetCellContents("AA62", new Formula("3"));
+            ss.SetContentsOfCell("Z1", "1");
+            ss.SetContentsOfCell("H7", "2");
+            ss.SetContentsOfCell("AA62", "=3");
             Assert.AreEqual(1.0, ss.GetCellContents("Z1"));
-            Assert.AreEqual("2", ss.GetCellContents("H7"));
+            Assert.AreEqual(2.0, ss.GetCellContents("H7"));
             Assert.IsTrue(ss.GetCellContents("AA62").Equals(new Formula("3")));
         }
 
@@ -229,9 +238,9 @@ namespace SpreadsheetTests
         public void GetNamesOfAllNonemptyCellsWorksAsExpectedSimple()
         {
             AbstractSpreadsheet ss = new Spreadsheet();
-            ss.SetCellContents("AA1", 35);
-            ss.SetCellContents("AA2", 90);
-            ss.SetCellContents("BB1", "full");
+            ss.SetContentsOfCell("AA1", "35");
+            ss.SetContentsOfCell("AA2", "90");
+            ss.SetContentsOfCell("BB1", "full");
             List<string> nonEmptyCells = ss.GetNamesOfAllNonemptyCells().ToList();
             Assert.AreEqual("AA1", nonEmptyCells[0]);
             Assert.AreEqual("AA2", nonEmptyCells[1]);
@@ -256,13 +265,56 @@ namespace SpreadsheetTests
         public void GetNamesOfAllNonemptyCellsWorksAsExpectedTechnicallyNotEmpty()
         {
             AbstractSpreadsheet ss = new Spreadsheet();
-            ss.SetCellContents("AA1", 0);
-            ss.SetCellContents("AA2", new Formula("0"));
-            ss.SetCellContents("BB1", "");
+            ss.SetContentsOfCell("AA1", "0");
+            ss.SetContentsOfCell("AA2", "=0");
             List<string> nonEmptyCells = ss.GetNamesOfAllNonemptyCells().ToList();
             Assert.AreEqual("AA1", nonEmptyCells[0]);
             Assert.AreEqual("AA2", nonEmptyCells[1]);
-            Assert.AreEqual("BB1", nonEmptyCells[2]);
+        }
+
+        /// <summary>
+        /// See title
+        /// </summary>
+        [TestMethod]
+        public void GetCellValueOfTypeDouble()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet();
+            ss.SetContentsOfCell("B2", "23");
+            Assert.AreEqual(23.0, ss.GetCellValue("B2"));
+        }
+
+        /// <summary>
+        /// See title
+        /// </summary>
+        [TestMethod]
+        public void GetCellValueOfTypeString()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet();
+            ss.SetContentsOfCell("J2", "hello.txt");
+            Assert.AreEqual("hello.txt", ss.GetCellValue("J2"));
+        }
+
+        /// <summary>
+        /// See title
+        /// </summary>
+        [TestMethod]
+        public void GetCellValueOfTypeFormula()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet();
+            ss.SetContentsOfCell("A1", "10");
+            ss.SetContentsOfCell("I8", "=A1 - 2");
+            Assert.AreEqual(8.0, ss.GetCellValue("I8"));
+        }
+
+        /// <summary>
+        /// See title
+        /// </summary>
+        [TestMethod]
+        public void GetCellValueOfTypeFormulaError()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet();
+            ss.SetContentsOfCell("A3", "=B2/0");
+            Assert.AreEqual(typeof(FormulaError), ss.GetCellValue("A3").GetType());
         }
     }
 }
