@@ -3,7 +3,7 @@
 **Course:** CS 3500, University of Utah, School of Computing
 **GitHub ID:** NSwimer1321
 **Repo:** https://github.com/uofu-cs3500-spring23/spreadsheet-NSwimer1321
-**Date:** 02/09/2023 Time: 9:00 pm
+**Date:** 02/17/2023 Time: 2:30 pm
 **Project Name:** Spreadsheet
 **Copyright:** CS 3500 and Nathaniel Taylor - This work may not be copied for use in Academic Coursework
 
@@ -20,6 +20,10 @@ comment of just "think about how Excel does this" would have been helpful. I als
 the SetContents(name, text) and the SetContents(name, formula) have the requirement of checking to see if
 text and formula is null, but the SetContents(name, number) does not have you check if number is null.
 
+Having to learn a topic like reading/writing XML mostly on our own was somewhat new since I can't remember another time
+where I had to spend a somewhat significant time learning how to do a large portion of the assignment, but once I did
+learn what I needed to learn, it was quite a rewarding experience.
+
 
 **Consulted Peers:**
 I didn't specifically ask anyone for help on this project. I did, however, look on Piazza and ask
@@ -27,5 +31,5 @@ if I had a question and asked a question myself.
 
 
 **References:**
-No references used besides my brain, lectures, and Piazza. I also used the AbstractSpreadsheet class that
-was given in the assignment details.
+https://www.youtube.com/watch?v=-DwANN5_BoE&t=299s
+https://learn.microsoft.com/en-us/dotnet/api/system.xml.xmlwriter?view=net-7.0

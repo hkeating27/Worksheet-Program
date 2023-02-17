@@ -4,7 +4,7 @@
 **Course:** CS 3500, University of Utah, School of Computing
 **GitHub ID:** NSwimer1321
 **Repo:** https://github.com/uofu-cs3500-spring23/spreadsheet-NSwimer1321
-**Date of Last Submission:** 02/09/2023 Time: 9:00 pm
+**Date of Last Submission:** 02/17/2023 Time: 2:30 pm
 **Solution:** Spreadsheet
 **Copyright:** CS 3500 and Nathaniel Taylor - This work may not be copied for use in Academic Coursework
 
@@ -21,8 +21,10 @@ of identifying dependent and dependee relationships. This means that the Spreads
 be calculated first and which ones can be calculated later ie. which "cells" depend on other "cells" to be 
 calculated. The Spreadsheet is also capable of keeping track of all of the cells containing a string, double, or
 formula. The Spreadsheet can also keep track of the direct relationships between cells and can find the indirect
-relationships between cells. Lastly, the Spreadsheet can also set the contents of a cell in the Spreadsheet to
-a string, double, or formula.
+relationships between cells. The Spreadsheet can also set the contents of a cell in the Spreadsheet to
+a string, double, or formula. The Spreadsheet can also set the value of a cell to a string, double, or FormulaError.
+Lastly, the Spreadsheet can create a spreadsheet from a file, it can Save a spreadsheet to a file, and it can find the
+version information from a file (if that file is a spreadsheet).
 
 **Examples of Good Software Practices(GSP):**
 I am getting much better at good seperation of concerns. It's something that took me a bit to remember and start
@@ -43,6 +45,10 @@ different inputs, my tests hit almost every line of code (there are a few lines 
 design of the assignment), the names of my tests do a good job of describing the test, and every test tests
 every possible way the thing it is testing could fail.
 
+**Other Good Software Practices:**
+-Regression Testing
+-Abstraction
+
 
 **Assignment 01 Estimated Hours Worked:** 10
 **Assignment 01 Hours Worked:** 10
@@ -56,9 +62,20 @@ every possible way the thing it is testing could fail.
 **Assignment 04 Estimated Hours Worked:** 10
 **Assignment 04 Hours Worked:** 10.5
 
-**Total Hours Worked:** 42.5
+**Assignment 05 Estimated Hours Worked:** 12
+**Assignment 05 Hours Worked:** 13
 
+**Total Hours Worked:** 55.5
 
+**Assign 05 Time Spent Towards Completion:** 6.5
+**Assign 05 Time Spent Debugging:** 5
+**Assign 05 Time Spent Learning Techniques:** 1.5
+
+I think that my estimation skills are fairly accurate. I'm usually either off by 0-1 hours (with the exception of assignment 02).
+However, I did seem to have a problem on the 5th assignment with debugging. Part of this was I tried to debug the XML methods without
+fully understanding how the XML methods work. Once I did took some time watching a video and reading the Microsoft documentation, I was
+able to debug those methods quite quickly. In the future I think that I'll just do the learning before I spend several hours trying to debug
+something I don't fully understand.
 
 
 

@@ -3,7 +3,7 @@
 **Course:** CS 3500, University of Utah, School of Computing
 **GitHub ID:** NSwimer1321
 **Repo:** https://github.com/uofu-cs3500-spring23/spreadsheet-NSwimer1321
-**Date:** 02/09/2023 Time: 9:00 pm
+**Date:** 02/17/2023 Time: 2:30 pm
 **Project Name:** Spreadsheet Tests
 **Copyright:** CS 3500 and Nathaniel Taylor - This work may not be copied for use in Academic Coursework
 
@@ -24,4 +24,5 @@ if I had a question and asked a question myself.
 
 
 **References:**
-I did not use any reference besides my brain for the SpreadsheetTests.
+I used the strategy in the assignment details for how to test trying to save to a nonexistent file path.
+Other than that I did not use any references.
