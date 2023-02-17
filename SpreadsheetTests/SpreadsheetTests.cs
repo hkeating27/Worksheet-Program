@@ -316,5 +316,18 @@ namespace SpreadsheetTests
             ss.SetContentsOfCell("A3", "=B2/0");
             Assert.AreEqual(typeof(FormulaError), ss.GetCellValue("A3").GetType());
         }
+
+        /// <summary>
+        /// See title
+        /// </summary>
+        [TestMethod]
+        public void SaveWorksAsExcpected()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(s => true, s => s.ToUpper(), "v1");
+            ss.SetContentsOfCell("A1", "87");
+            ss.SetContentsOfCell("A2", "Hello");
+            ss.Save("test.xml");
+            Assert.AreEqual("v1", ss.GetSavedVersion("test.xml") );
+        }
     }
 }

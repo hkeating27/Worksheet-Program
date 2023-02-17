@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
+using System.Xml.Serialization;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace SS
@@ -93,6 +94,7 @@ namespace SS
         private Func<string, bool> isValid;
         private Func<string, string> normalize;
         private string version;
+        private bool actualValue;
 
         /// <summary>
         /// True if this spreadsheet has been modified since it was created or saved                  
@@ -100,8 +102,8 @@ namespace SS
         /// </summary>
         public override bool Changed 
         {
-            get => Changed;
-            protected set => Changed = value;
+            get => actualValue;
+            protected set => actualValue = value;
         }
 
         /// <summary>
@@ -145,12 +147,13 @@ namespace SS
         /// <param name="version"></param>
         public Spreadsheet(string fileName, Func<string, bool> isValid, Func<string, string> normalize, string version) : base(isValid, normalize, version)
         {
+            Save(fileName);
             this.cells = new Dictionary<string, Cell>();
             this.spreadsheet = new DependencyGraph();
             this.isValid = isValid;
             this.normalize = normalize;
             this.version = version;
-            Changed = true;
+            constructFromFile(fileName);
         }
 
         /// <summary>
@@ -344,7 +347,7 @@ namespace SS
             List<string> toRecalculate = new List<string>();
             if (!cells.TryGetValue(normalize(name), out Cell? cell))
             {
-                cells.Add(normalize(name), new Cell(normalize(name), formula));
+                cells.Add(normalize(name), new Cell(normalize(name), formula, calculateCellvalue(formula)));
             }
             else
             {
@@ -562,14 +565,19 @@ namespace SS
         {
             try
             {
-                XmlReader reader = XmlReader.Create(filename);
-                reader.ReadStartElement();
-                return reader.ReadContentAsString();
+                using (XmlReader reader = XmlReader.Create(filename))
+                {
+                    string? returnValue = reader.GetAttribute("spreadsheet");
+                    if (returnValue == null)
+                        throw new ArgumentException();
+                    return returnValue;
+                }
             }
             catch
             {
-                // There are several possible errors that could occur and all of these possible errors
-                // need to be caught so that the SpreadsheetReadWriteException can be thrown.
+                // The XmlReader can throw many different errors while trying to read a file.
+                // The try-catch block just needs to catch all of those possible errors so that the
+                // SpreadsheetReadWriteExcepion can be thrown instead.
             }
             throw new SpreadsheetReadWriteException("The given spreadsheet could not be read properly. This could be because the " +
                 "given file does not exist or the file is not in the proper form.");
@@ -605,18 +613,18 @@ namespace SS
             using (XmlWriter writer = XmlWriter.Create(filename, settings))
             {
                 writer.WriteStartDocument();
-                writer.WriteStartElement("spreadsheet " + version);
+                writer.WriteStartElement("spreadsheet");
+                writer.WriteAttributeString("version", version);
 
-                foreach(Cell cell in cells.Values)
+                foreach (Cell cell in cells.Values)
                 {
-                    writer.WriteStartElement("<cell>");
-                    writer.WriteStartElement("<name>");
-                    writer.WriteStartAttribute("Cell ", cell.getName());
-                    writer.WriteEndAttribute();
-                    writer.WriteEndElement();
-                    writer.WriteStartElement("<contents>");
+                    writer.WriteStartElement("cell");
+                    writer.WriteElementString("name", cell.getName());
+                    writer.WriteElementString("contents", "");
                     writer.WriteEndElement();
                 }
+                writer.WriteEndElement();
+                writer.WriteEndDocument();
             }
             Changed = false;
         }
@@ -645,11 +653,46 @@ namespace SS
         }
 
         /// <summary>
+        /// Constructs a spreadsheet by reading from a file
+        /// </summary>
+        /// <param name="fileName"> the name of the file being read from</param>
+        private void constructFromFile(string fileName)
+        {
+            XmlReader reader = XmlReader.Create(fileName);
+        }
+
+        /// <summary>
+        /// Looks up the value of the cell with the given cell name
+        /// </summary>
+        /// <param name="name"> the name of a cell in the spreadsheet</param>
+        /// <returns> the value of the cell with the given cell name</returns>
+        /// <exception cref=""> Throws an argument exception if the value of the cell name is not a double</exception>
+        private double lookup(string name)
+        {
+            object cellValue = GetCellValue(name);
+            if (cellValue.GetType() == typeof(double))
+                return (double)cellValue;
+            else
+                throw new ArgumentException();
+        }
+
+        /// <summary>
+        /// Calculates the value of a cell
+        /// </summary>
+        /// <param name="contents">the contents of a cell (the value will be calculated from this)</param>
+        /// <returns>the value of a cell</returns>
+        private object calculateCellvalue(Formula contents)
+        {
+            object newValue = contents.Evaluate(lookup);
+            return newValue;
+        }
+
+        /// <summary>
         /// This class is meant to represent a cell in a spreadsheet. A cell contains
         /// a name and the contents of the cell. The contents of a cell can be a string, a double,
         /// or a formula.
         /// </summary>
-        internal class Cell : Spreadsheet
+        internal class Cell
         {
             //Fields
             private string name;
@@ -685,11 +728,11 @@ namespace SS
             /// </summary>
             /// <param name="name"></param> the name of the cell
             /// <param name="contents"></param> the contents contained in the cell
-            public Cell(string name, Formula contents)
+            public Cell(string name, Formula contents, object value)
             {
                 this.name = name;
                 this.contents = contents;
-                this.value = contents.Evaluate(lookup);
+                this.value = value;
             }
 
             /// <summary>
@@ -719,24 +762,13 @@ namespace SS
                 return value;
             }
 
+            /// <summary>
+            /// Retrieves the name of the cell
+            /// </summary>
+            /// <returns>the name of the cell</returns>
             public string getName()
             {
                 return name;
-            }
-
-            /// <summary>
-            /// Looks up the value of the cell with the given cell name
-            /// </summary>
-            /// <param name="name"> the name of a cell in the spreadsheet</param>
-            /// <returns> the value of the cell with the given cell name</returns>
-            /// <exception cref=""> Throws an argument exception if the value of the cell name is not a double</exception>
-            public double lookup(string name)
-            {
-                object cellValue = GetCellValue(name);
-                if (cellValue.GetType() == typeof(double))
-                    return (double)cellValue;
-                else
-                    throw new ArgumentException();
             }
         }
     }
