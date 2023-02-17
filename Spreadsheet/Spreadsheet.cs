@@ -567,10 +567,17 @@ namespace SS
             {
                 using (XmlReader reader = XmlReader.Create(filename))
                 {
-                    string? returnValue = reader.GetAttribute("spreadsheet");
-                    if (returnValue == null)
-                        throw new ArgumentException();
-                    return returnValue;
+                    while (reader.Read())
+                    {
+                        if ((reader.NodeType == XmlNodeType.Element) && reader.Name == "spreadsheet")
+                        {
+                            string? attribute = reader.GetAttribute("version");
+                            if (attribute != null)
+                                return attribute;
+                            else
+                                throw new ArgumentException();
+                        }
+                    }
                 }
             }
             catch
@@ -620,7 +627,7 @@ namespace SS
                 {
                     writer.WriteStartElement("cell");
                     writer.WriteElementString("name", cell.getName());
-                    writer.WriteElementString("contents", "");
+                    writer.WriteElementString("contents", "hello");
                     writer.WriteEndElement();
                 }
                 writer.WriteEndElement();
@@ -658,7 +665,13 @@ namespace SS
         /// <param name="fileName"> the name of the file being read from</param>
         private void constructFromFile(string fileName)
         {
-            XmlReader reader = XmlReader.Create(fileName);
+            using (XmlReader reader = XmlReader.Create(fileName))
+            {
+                while (reader.Read())
+                {
+
+                }
+            }
         }
 
         /// <summary>
