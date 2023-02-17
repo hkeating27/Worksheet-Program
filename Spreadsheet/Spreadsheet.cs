@@ -135,24 +135,27 @@ namespace SS
             this.isValid     = isValid;
             this.normalize   = normalize;
             this.version     = version;
-            Changed = true;
+            Changed          = true;
         }
 
         /// <summary>
-        /// 
+        /// Constructs a spreadsheet from a previously existing XML file. It also
+        /// records the spreadsheet's variable validity test, the variable normalizer method,
+        /// and the spreadsheet's version information.
         /// </summary>
-        /// <param name="fileName"></param>
-        /// <param name="isValid"></param>
-        /// <param name="normalize"></param>
-        /// <param name="version"></param>
+        /// <param name="fileName">     the name of the previously existing XML file</param>
+        /// <param name="isValid">      the variable validity test</param>
+        /// <param name="normalize">    the normalizer method</param>
+        /// <param name="version">      the version information</param>
         public Spreadsheet(string fileName, Func<string, bool> isValid, Func<string, string> normalize, string version) : base(isValid, normalize, version)
         {
-            Save(fileName);
-            this.cells = new Dictionary<string, Cell>();
+            this.cells       = new Dictionary<string, Cell>();
             this.spreadsheet = new DependencyGraph();
-            this.isValid = isValid;
-            this.normalize = normalize;
-            this.version = version;
+            this.isValid     = isValid;
+            this.normalize   = normalize;
+            this.version     = version;
+            Changed = true;
+
             constructFromFile(fileName);
         }
 
@@ -613,27 +616,38 @@ namespace SS
         /// </summary>
         public override void Save(string filename)
         {
-            XmlWriterSettings settings = new XmlWriterSettings();
-            settings.Indent = true;
-            settings.IndentChars = "  ";
-
-            using (XmlWriter writer = XmlWriter.Create(filename, settings))
+            bool errorThrown = false;
+            try
             {
-                writer.WriteStartDocument();
-                writer.WriteStartElement("spreadsheet");
-                writer.WriteAttributeString("version", version);
+                XmlWriterSettings settings = new XmlWriterSettings();
+                settings.Indent = true;
+                settings.IndentChars = "  ";
 
-                foreach (Cell cell in cells.Values)
+                using (XmlWriter writer = XmlWriter.Create(filename, settings))
                 {
-                    writer.WriteStartElement("cell");
-                    writer.WriteElementString("name", cell.getName());
-                    writer.WriteElementString("contents", "hello");
+                    writer.WriteStartDocument();
+                    writer.WriteStartElement("spreadsheet");
+                    writer.WriteAttributeString("version", version);
+
+                    foreach (Cell cell in cells.Values)
+                    {
+                        writer.WriteStartElement("cell");
+                        writer.WriteElementString("name", cell.getName());
+                        writer.WriteElementString("contents", cell.getContents().ToString());
+                        writer.WriteEndElement();
+                    }
                     writer.WriteEndElement();
+                    writer.WriteEndDocument();
                 }
-                writer.WriteEndElement();
-                writer.WriteEndDocument();
+            }
+            catch
+            {
+                errorThrown = true;
             }
             Changed = false;
+            if (errorThrown)
+                throw new SpreadsheetReadWriteException("The given spreadsheet could not be written properly. This could be because the " +
+                "given file does not exist or the file is not in the proper form.");
         }
 
         /// <summary>
@@ -665,13 +679,34 @@ namespace SS
         /// <param name="fileName"> the name of the file being read from</param>
         private void constructFromFile(string fileName)
         {
-            using (XmlReader reader = XmlReader.Create(fileName))
+            bool errorThrown = false;
+            try
             {
-                while (reader.Read())
-                {
+                string? name     = null;
+                string? contents = null;
 
+                using (XmlReader reader = XmlReader.Create(fileName))
+                {
+                    while (reader.Read())
+                    {
+                        if ((reader.NodeType == XmlNodeType.Element) && reader.Name == "name")
+                            name = reader.ReadElementContentAsString();
+                        else if ((reader.NodeType == XmlNodeType.Element) && reader.Name == "contents")
+                            contents = reader.ReadElementContentAsString();
+
+                        if ((name != null) && (contents != null))
+                            SetContentsOfCell(name, contents);
+                    }
                 }
             }
+            catch
+            {
+                errorThrown = true;
+            }
+
+            if(errorThrown)
+                throw new SpreadsheetReadWriteException("The given spreadsheet could not be read properly. This could be because the " +
+                    "given file does not exist or the file is not in the proper form.");
         }
 
         /// <summary>

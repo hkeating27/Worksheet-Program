@@ -321,13 +321,99 @@ namespace SpreadsheetTests
         /// See title
         /// </summary>
         [TestMethod]
-        public void SaveWorksAsExcpected()
+        public void SavedVersionWorksAsExpectedSimpleSpreadsheet()
         {
             AbstractSpreadsheet ss = new Spreadsheet(s => true, s => s.ToUpper(), "v1");
             ss.SetContentsOfCell("A1", "87");
             ss.SetContentsOfCell("A2", "Hello");
             ss.Save("test.xml");
             Assert.AreEqual("v1", ss.GetSavedVersion("test.xml") );
+        }
+
+        /// <summary>
+        /// See title
+        /// </summary>
+        [TestMethod]
+        public void FourthConstructorWorksAsExpectedSimpleSpreadsheet()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(s => true, s => s.ToUpper(), "v1");
+            ss.SetContentsOfCell("A1", "87");
+            ss.SetContentsOfCell("A2", "Hello");
+            ss.Save("test2.xml");
+
+            AbstractSpreadsheet ss2 = new Spreadsheet("test2.xml", s => true, s => s, "v1");
+            Assert.AreEqual(87.0, ss2.GetCellContents("A1"));
+            Assert.AreEqual("Hello", ss2.GetCellContents("A2"));
+        }
+
+        /// <summary>
+        /// See title
+        /// </summary>
+        [TestMethod]
+        public void SetCellContentsSetsChanged()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(s => true, s => s.ToUpper(), "v1");
+            ss.SetContentsOfCell("A2", "=A1 / 3");
+            Assert.IsTrue(ss.Changed);
+        }
+
+        /// <summary>
+        /// See title
+        /// </summary>
+        [TestMethod]
+        public void ChangedWorksAsexpectedWithFormulas()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet();
+            ss.SetContentsOfCell("A2", "=A1 / 3");
+            Assert.IsTrue(ss.Changed);
+            ss.Save("XML.xml");
+            Assert.IsFalse(ss.Changed);
+            ss.SetContentsOfCell("B1", "=A3 / 3");
+            Assert.IsTrue(ss.Changed);
+        }
+
+        /// <summary>
+        /// See title
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(SpreadsheetReadWriteException))]
+        public void GetSavedVersionWorksAsExpectedInvalidFileFormat()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet("invalid.xml", s => true, s => s, "v1");
+            ss.GetSavedVersion("invalid.xml");
+        }
+
+        /// <summary>
+        /// See title
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(SpreadsheetReadWriteException))]
+        public void GetSavedVersionWorksAsExpectedNullVersion()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet("invalid2.xml", s => true, s => s, "v1");
+            ss.GetSavedVersion("invalid2.xml");
+        }
+
+        /// <summary>
+        /// See title
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(SpreadsheetReadWriteException))]
+        public void GetSavedVersionWorksAsExpectedInvalidFile()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(s => true, s => s, "v1");
+            ss.GetSavedVersion("doesNotExist.xml");
+        }
+
+        /// <summary>
+        /// See title
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(SpreadsheetReadWriteException))]
+        public void SaveThrowsAsexcpected()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet(s => true, s => s, "v1");
+            ss.Save("/utter/nonsense.xml");
         }
     }
 }
