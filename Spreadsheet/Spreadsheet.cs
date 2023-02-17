@@ -462,8 +462,8 @@ namespace SS
         /// <returns></returns> toRecalculate (or throws a CircularException if a cycle is found)
         private List<string> findCellsToRecalculate(List<string> toRecalculate, string name)
         {
-            toRecalculate = GetCellsToRecalculate(GetDirectDependents(name).ToHashSet()).ToList();
             toRecalculate.Add(name);
+            toRecalculate.AddRange(GetCellsToRecalculate(GetDirectDependents(name).ToHashSet()).ToList());
             return toRecalculate;
         }
 

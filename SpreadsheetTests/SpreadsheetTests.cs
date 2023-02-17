@@ -410,10 +410,30 @@ namespace SpreadsheetTests
         /// </summary>
         [TestMethod]
         [ExpectedException(typeof(SpreadsheetReadWriteException))]
-        public void SaveThrowsAsexcpected()
+        public void SaveThrowsAsExpected()
         {
             AbstractSpreadsheet ss = new Spreadsheet(s => true, s => s, "v1");
             ss.Save("/utter/nonsense.xml");
+        }
+
+        /// <summary>
+        /// See title
+        /// </summary>
+        [TestMethod]
+        public void SetContentsRecalculatesAsExpected()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet();
+            ss.SetContentsOfCell("A1", "90");
+            ss.SetContentsOfCell("B1", "=A1 - 2");
+            ss.SetContentsOfCell("C1", "=B1 / 4");
+
+            List<string> answers = new List<string>() { "A1", "B1", "C1" };
+            List<string> results = ss.SetContentsOfCell("A1", "85").ToList();
+            Assert.AreEqual(answers.Count, results.Count);
+            for(int i = 0; i < answers.Count; i++) 
+            {
+                Assert.AreEqual(answers[i], results[i]);
+            }
         }
     }
 }

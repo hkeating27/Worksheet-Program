@@ -3,7 +3,7 @@
 **Course:** CS 3500, University of Utah, School of Computing
 **GitHub ID:** NSwimer1321
 **Repo:** https://github.com/uofu-cs3500-spring23/spreadsheet-NSwimer1321
-**Date:** 02/17/2023 Time: 2:30 pm
+**Date:** 02/17/2023 Time: 2:40 pm
 **Project Name:** Spreadsheet Tests
 **Copyright:** CS 3500 and Nathaniel Taylor - This work may not be copied for use in Academic Coursework
 
