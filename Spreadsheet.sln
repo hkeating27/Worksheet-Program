@@ -8,7 +8,11 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A94171DD-AEAB-424D-8371-12269EC0D588}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		Whiteboard\dependencyGraph_whiteboard.jpg = Whiteboard\dependencyGraph_whiteboard.jpg
+		Whiteboard\formula_whiteboard.jpg = Whiteboard\formula_whiteboard.jpg
 		README.txt = README.txt
+		Whiteboard\relationships_whiteboard.jpg = Whiteboard\relationships_whiteboard.jpg
+		Whiteboard\spreadsheet_whiteboard.jpg = Whiteboard\spreadsheet_whiteboard.jpg
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependencyGraph", "DependencyGraph\DependencyGraph.csproj", "{358E5A26-7102-4777-8BB3-5B520E1DC8E6}"
@@ -22,14 +26,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Spreadsheet", "Spreadsheet\Spreadsheet.csproj", "{100EDBAF-AED6-4084-A1D8-E334F8DAD6A7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpreadsheetTests", "SpreadsheetTests\SpreadsheetTests.csproj", "{FF3136CF-CEE1-4AAC-AEF2-87C36CD71CB3}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Whiteboard", "Whiteboard", "{84BF2C1E-69CF-4156-BE49-8FA8581912A1}"
-	ProjectSection(SolutionItems) = preProject
-		..\..\..\Downloads\dependencyGraph_whiteboard.jpg = ..\..\..\Downloads\dependencyGraph_whiteboard.jpg
-		..\..\..\Downloads\formula_whiteboard.jpg = ..\..\..\Downloads\formula_whiteboard.jpg
-		..\..\..\Downloads\relationships_whiteboard.jpg = ..\..\..\Downloads\relationships_whiteboard.jpg
-		..\..\..\Downloads\spreadsheet_whiteboard.jpg = ..\..\..\Downloads\spreadsheet_whiteboard.jpg
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

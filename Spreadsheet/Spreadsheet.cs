@@ -427,7 +427,7 @@ namespace SS
         }
 
         /// <summary>
-        /// Determines if the given name is valid (determined by isVar).
+        /// Determines if the given name is valid (determined by isVar and the IsValid delegate).
         /// </summary>
         /// <param name="checkName"></param> the name being checked
         /// <exception cref="InvalidNameException"></exception> If the name is not of a valid form, then 
@@ -674,7 +674,8 @@ namespace SS
         }
 
         /// <summary>
-        /// Constructs a spreadsheet by reading from a file
+        /// Constructs a spreadsheet by reading from a file. Throws a SpreadsheetReadWriteException
+        /// if at any point while trying to read the file an exception of any kind is thrown.
         /// </summary>
         /// <param name="fileName"> the name of the file being read from</param>
         private void constructFromFile(string fileName)
