@@ -37,12 +37,9 @@ namespace SpreadsheetUtilities
     {
         // Fields
         /// <summary>
-        /// The string is the key in the dictionary, while the
-        /// HashSet<string> is the value in the dictionary. For
-        /// dependents this means that everything in the HashSet
-        /// depends on the string ie the string must be evaluated before
-        /// everything in the HashSet. This is the opposite for dependees
-        /// ie everything in the HashSet must be evaluated before the string.
+        /// The string is the key in the dictionary, while the HashSet<string> is the value in the dictionary. For
+        /// dependents this means that everything in the HashSet depends on the string ie the string must be evaluated before
+        /// everything in the HashSet. This is the opposite for dependees ie everything in the HashSet must be evaluated before the string.
         /// </summary>
         private Dictionary<string, HashSet<string>> dependents;
         private Dictionary<string, HashSet<string>> dependees;

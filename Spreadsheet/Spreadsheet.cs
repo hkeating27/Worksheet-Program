@@ -131,12 +131,12 @@ namespace SS
         /// <param name="version">   defines the version of the spreadsheet (should it be saved)</param>
         public Spreadsheet(Func<string, bool> isValid, Func<string, string> normalize, string version) : base(isValid, normalize, version)
         {
-            this.cells       = new Dictionary<string, Cell>();
+            this.cells             = new Dictionary<string, Cell>();
             this.cellRelationships = new DependencyGraph();
-            this.isValid     = isValid;
-            this.normalize   = normalize;
-            this.version     = version;
-            Changed          = false;
+            this.isValid           = isValid;
+            this.normalize         = normalize;
+            this.version           = version;
+            Changed                = false;
         }
 
         /// <summary>
@@ -151,12 +151,12 @@ namespace SS
         public Spreadsheet(string fileName, Func<string, bool> isValid, Func<string, string> normalize, string version) : 
                                                                                       base(isValid, normalize, version)
         {
-            this.cells       = new Dictionary<string, Cell>();
+            this.cells             = new Dictionary<string, Cell>();
             this.cellRelationships = new DependencyGraph();
-            this.isValid     = isValid;
-            this.normalize   = normalize;
-            this.version     = version;
-            Changed          = false;
+            this.isValid           = isValid;
+            this.normalize         = normalize;
+            this.version           = version;
+            Changed                = false;
 
             constructFromFile(fileName);
         }
