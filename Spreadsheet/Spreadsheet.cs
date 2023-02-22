@@ -3,6 +3,7 @@ using SpreadsheetUtilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -135,7 +136,7 @@ namespace SS
             this.isValid     = isValid;
             this.normalize   = normalize;
             this.version     = version;
-            Changed          = true;
+            Changed          = false;
         }
 
         /// <summary>
@@ -154,7 +155,7 @@ namespace SS
             this.isValid     = isValid;
             this.normalize   = normalize;
             this.version     = version;
-            Changed = true;
+            Changed          = false;
 
             constructFromFile(fileName);
         }
@@ -241,7 +242,7 @@ namespace SS
             }
             else
             {
-                settingCellInSpreadsheet(normalize(name), number, cell);
+                settingCellInSpreadsheet(normalize(name), number, new Cell(normalize(name), number));
             }
             spreadsheet.ReplaceDependees(normalize(name), new List<string>());
             return findCellsToRecalculate(toRecalculate, normalize(name));
@@ -291,7 +292,7 @@ namespace SS
             }
             else
             {
-                settingCellInSpreadsheet(normalize(name), text, cell);
+                settingCellInSpreadsheet(normalize(name), text, new Cell(normalize(name), text));
             }
             spreadsheet.ReplaceDependees(normalize(name), new List<string>());
             return findCellsToRecalculate(toRecalculate, normalize(name));
@@ -345,8 +346,9 @@ namespace SS
             else
                 previouslyUnchanged = false;
 
-            object? oldContents = null;
-            DependencyGraph oldSS = spreadsheet;
+            object? oldContents        = null;
+            object? oldValue           = null;
+            DependencyGraph oldSS      = spreadsheet;
             List<string> toRecalculate = new List<string>();
             if (!cells.TryGetValue(normalize(name), out Cell? cell))
             {
@@ -355,7 +357,8 @@ namespace SS
             else
             {
                 oldContents = cell.getContents();
-                settingCellInSpreadsheet(normalize(name), formula, cell);
+                oldValue    = cell.getValue();
+                settingCellInSpreadsheet(normalize(name), formula, new Cell(normalize(name), formula, calculateCellvalue(formula)));
             }
 
             try
@@ -412,59 +415,6 @@ namespace SS
                 dependents = spreadsheet.GetDependents(normalize(name)).ToList();
 
             return dependents;
-        }
-
-        /// <summary>
-        /// Determines if the given string is a variable
-        /// </summary>
-        /// <param name="token"></param> the given string
-        /// <returns></returns> true or false
-        private bool isVar(string token)
-        {
-            if (Regex.IsMatch(token, @"^[a-zA-Z](?: [a-zA-Z]|\d)*"))
-                return true;
-            return false;
-        }
-
-        /// <summary>
-        /// Determines if the given name is valid (determined by isVar and the IsValid delegate).
-        /// </summary>
-        /// <param name="checkName"></param> the name being checked
-        /// <exception cref="InvalidNameException"></exception> If the name is not of a valid form, then 
-        /// throw this exception
-        private void isNameValid(string checkName)
-        {
-            if (!isVar(checkName))
-                throw new InvalidNameException();
-            if (!isValid(normalize(checkName)))
-                throw new InvalidNameException();
-        }
-
-        /// <summary>
-        /// Sets a cell's contents in the spreadsheet
-        /// </summary>
-        /// <param name="name"></param> the name of the cell whose contents are being changed
-        /// <param name="contents"></param> the contents being changed to
-        /// <param name="cell"></param> a reference to the cell being changed
-        private void settingCellInSpreadsheet(string name, object contents, Cell cell)
-        {
-
-            cells.Remove(name);
-            cell.setContents(contents);
-            cells.Add(name, cell);
-        }
-
-        /// <summary>
-        /// Uses the GetCellsToRecalculate method to find the cells to recalculate
-        /// </summary>
-        /// <param name="toRecalculate"></param> a HashSet that holds the names of all the cells to recalculate
-        /// <param name="name"></param> the name of the cell to start the search of cells to recalculate from
-        /// <returns></returns> toRecalculate (or throws a CircularException if a cycle is found)
-        private List<string> findCellsToRecalculate(List<string> toRecalculate, string name)
-        {
-            toRecalculate.Add(name);
-            toRecalculate.AddRange(GetCellsToRecalculate(GetDirectDependents(name).ToHashSet()).ToList());
-            return toRecalculate;
         }
 
         /// <summary>
@@ -539,11 +489,23 @@ namespace SS
         {
             Changed = true;
             if (Double.TryParse(content, out double number))
-                return SetCellContents(name, number);
-            else if (content[0] == '=')
-                return SetCellContents(name, new Formula(content.Substring(1), normalize, isValid));
+            {
+                IList<string> returnList = SetCellContents(name, number);
+                recalculateCell(returnList);
+                return returnList;
+            }
+            else if (content.Length != 0 && content[0] == '=')
+            {
+                IList<string> returnList = SetCellContents(name, new Formula(content.Substring(1), normalize, isValid));
+                recalculateCell(returnList);
+                return returnList;
+            }
             else
-                return SetCellContents(name, content);
+            {
+                IList<string> returnList = SetCellContents(name, content);
+                recalculateCell(returnList);
+                return returnList;
+            }
         }
 
         /// <summary>
@@ -633,7 +595,14 @@ namespace SS
                     {
                         writer.WriteStartElement("cell");
                         writer.WriteElementString("name", cell.getName());
-                        writer.WriteElementString("contents", cell.getContents().ToString());
+                        object contents = cell.getContents();
+
+                        if (contents.GetType() == typeof(string))
+                            writer.WriteElementString("contents", contents.ToString());
+                        else if (contents.GetType() == typeof(double))
+                            writer.WriteElementString("contents", contents.ToString());
+                        else
+                            writer.WriteElementString("contents", "=" + contents.ToString());
                         writer.WriteEndElement();
                     }
                     writer.WriteEndElement();
@@ -674,6 +643,59 @@ namespace SS
         }
 
         /// <summary>
+        /// Determines if the given string is a variable
+        /// </summary>
+        /// <param name="token"></param> the given string
+        /// <returns></returns> true or false
+        private bool isVar(string token)
+        {
+            if (Regex.IsMatch(token, @"^[a-zA-Z](?: [a-zA-Z]|\d)*"))
+                return true;
+            return false;
+        }
+
+        /// <summary>
+        /// Determines if the given name is valid (determined by isVar and the IsValid delegate).
+        /// </summary>
+        /// <param name="checkName"></param> the name being checked
+        /// <exception cref="InvalidNameException"></exception> If the name is not of a valid form, then 
+        /// throw this exception
+        private void isNameValid(string checkName)
+        {
+            if (!isVar(checkName))
+                throw new InvalidNameException();
+            if (!isValid(normalize(checkName)))
+                throw new InvalidNameException();
+        }
+
+        /// <summary>
+        /// Sets a cell's contents in the spreadsheet
+        /// </summary>
+        /// <param name="name"></param> the name of the cell whose contents are being changed
+        /// <param name="contents"></param> the contents being changed to
+        /// <param name="cell"></param> a reference to the cell being changed
+        private void settingCellInSpreadsheet(string name, object contents, Cell cell)
+        {
+
+            cells.Remove(name);
+            cell.setContents(contents);
+            cells.Add(name, cell);
+        }
+
+        /// <summary>
+        /// Uses the GetCellsToRecalculate method to find the cells to recalculate
+        /// </summary>
+        /// <param name="toRecalculate"></param> a HashSet that holds the names of all the cells to recalculate
+        /// <param name="name"></param> the name of the cell to start the search of cells to recalculate from
+        /// <returns></returns> toRecalculate (or throws a CircularException if a cycle is found)
+        private List<string> findCellsToRecalculate(List<string> toRecalculate, string name)
+        {
+            toRecalculate.Add(name);
+            toRecalculate.AddRange(GetCellsToRecalculate(GetDirectDependents(name).ToHashSet()).ToList());
+            return toRecalculate;
+        }
+
+        /// <summary>
         /// Constructs a spreadsheet by reading from a file. Throws a SpreadsheetReadWriteException
         /// if at any point while trying to read the file an exception of any kind is thrown.
         /// </summary>
@@ -683,7 +705,10 @@ namespace SS
             bool errorThrown = false;
             try
             {
-                string? name     = null;
+                if (GetSavedVersion(fileName) != version)
+                    throw new ArgumentException();
+
+                string? name = null;
                 string? contents = null;
 
                 using (XmlReader reader = XmlReader.Create(fileName))
@@ -734,6 +759,18 @@ namespace SS
         {
             object newValue = contents.Evaluate(lookup);
             return newValue;
+        }
+
+
+        private void recalculateCell(IList<string> cellList)
+        {
+            foreach (string cellName in cellList)
+            {
+                cells.TryGetValue(cellName, out Cell? cell);
+                if (cell != null && cell.getContents().GetType() == typeof(Formula))
+                    settingCellInSpreadsheet(normalize(cellName), cell.getContents(), new Cell(normalize(cellName),
+                                                      (Formula)cell.getContents(), calculateCellvalue((Formula)cell.getContents())));
+            }
         }
 
         /// <summary>
@@ -818,6 +855,15 @@ namespace SS
             public string getName()
             {
                 return name;
+            }
+
+            /// <summary>
+            /// Sets the value of the cell
+            /// </summary>
+            /// <param name="newValue">The new value of this cell</param>
+            public void SetValue(object newValue)
+            {
+                value = newValue;
             }
         }
     }
