@@ -181,8 +181,7 @@ namespace SS
 
             if (cells.TryGetValue(normalize(name), out Cell? cell))
                 return cell.getContents();
-            else
-                return "";
+            return "";
         }
 
         /// <summary>
@@ -580,7 +579,6 @@ namespace SS
         /// </summary>
         public override void Save(string filename)
         {
-            bool errorThrown = false;
             try
             {
                 XmlWriterSettings settings = new XmlWriterSettings();
@@ -599,12 +597,10 @@ namespace SS
                         writer.WriteElementString("name", cell.getName());
                         object contents = cell.getContents();
 
-                        if (contents.GetType() == typeof(string))
-                            writer.WriteElementString("contents", contents.ToString());
-                        else if (contents.GetType() == typeof(double))
-                            writer.WriteElementString("contents", contents.ToString());
-                        else
+                        if (contents.GetType() == typeof(Formula))
                             writer.WriteElementString("contents", "=" + contents.ToString());
+                        else
+                            writer.WriteElementString("contents", contents.ToString());
                         writer.WriteEndElement();
                     }
                     writer.WriteEndElement();
@@ -613,12 +609,10 @@ namespace SS
             }
             catch
             {
-                errorThrown = true;
+                throw new SpreadsheetReadWriteException("The given spreadsheet could not be written properly. This could be because the " +
+                 "given file does not exist or the file is not in the proper form.");
             }
             Changed = false;
-            if (errorThrown)
-                throw new SpreadsheetReadWriteException("The given spreadsheet could not be written properly. This could be because the " +
-                "given file does not exist or the file is not in the proper form.");
         }
 
         /// <summary>
@@ -860,15 +854,6 @@ namespace SS
             public string getName()
             {
                 return name;
-            }
-
-            /// <summary>
-            /// Sets the value of the cell
-            /// </summary>
-            /// <param name="newValue">The new value of this cell</param>
-            public void SetValue(object newValue)
-            {
-                value = newValue;
             }
         }
     }

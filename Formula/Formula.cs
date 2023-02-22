@@ -87,12 +87,12 @@ namespace SpreadsheetUtilities
         /// </summary>
         public Formula(String formula, Func<string, string> normalize, Func<string, bool> isValid)
         {
-            normalizer = normalize;
-            validator = isValid;
-            sumOfNums = 0;
+            normalizer           = normalize;
+            validator            = isValid;
+            sumOfNums            = 0;
             int rightParenthesis = 0;
-            int leftParenthesis = 0;
-            tokens = GetTokens(formula).ToList();
+            int leftParenthesis  = 0;
+            tokens               = GetTokens(formula).ToList();
 
             //If the formula is empty, does not start with a number, variable, or opening parenthesis, and
             //does not end with a number, variable, or closing parenthesis then the formula is invalid
