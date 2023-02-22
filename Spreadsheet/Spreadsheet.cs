@@ -91,11 +91,11 @@ namespace SS
     {
         //Fields
         private Dictionary<string, Cell> cells;
-        private DependencyGraph spreadsheet;
+        private DependencyGraph cellRelationships;
         private Func<string, bool> isValid;
         private Func<string, string> normalize;
         private string version;
-        private bool actualValue;
+        private bool wasChanged;
 
         /// <summary>
         /// True if this spreadsheet has been modified since it was created or saved                  
@@ -103,8 +103,8 @@ namespace SS
         /// </summary>
         public override bool Changed 
         {
-            get => actualValue;
-            protected set => actualValue = value;
+            get => wasChanged;
+            protected set => wasChanged = value;
         }
 
         /// <summary>
@@ -132,7 +132,7 @@ namespace SS
         public Spreadsheet(Func<string, bool> isValid, Func<string, string> normalize, string version) : base(isValid, normalize, version)
         {
             this.cells       = new Dictionary<string, Cell>();
-            this.spreadsheet = new DependencyGraph();
+            this.cellRelationships = new DependencyGraph();
             this.isValid     = isValid;
             this.normalize   = normalize;
             this.version     = version;
@@ -148,10 +148,11 @@ namespace SS
         /// <param name="isValid">      the variable validity test</param>
         /// <param name="normalize">    the normalizer method</param>
         /// <param name="version">      the version information</param>
-        public Spreadsheet(string fileName, Func<string, bool> isValid, Func<string, string> normalize, string version) : base(isValid, normalize, version)
+        public Spreadsheet(string fileName, Func<string, bool> isValid, Func<string, string> normalize, string version) : 
+                                                                                      base(isValid, normalize, version)
         {
             this.cells       = new Dictionary<string, Cell>();
-            this.spreadsheet = new DependencyGraph();
+            this.cellRelationships = new DependencyGraph();
             this.isValid     = isValid;
             this.normalize   = normalize;
             this.version     = version;
@@ -244,7 +245,7 @@ namespace SS
             {
                 settingCellInSpreadsheet(normalize(name), number, new Cell(normalize(name), number));
             }
-            spreadsheet.ReplaceDependees(normalize(name), new List<string>());
+            cellRelationships.ReplaceDependees(normalize(name), new List<string>());
             return findCellsToRecalculate(toRecalculate, normalize(name));
         }
 
@@ -294,7 +295,7 @@ namespace SS
             {
                 settingCellInSpreadsheet(normalize(name), text, new Cell(normalize(name), text));
             }
-            spreadsheet.ReplaceDependees(normalize(name), new List<string>());
+            cellRelationships.ReplaceDependees(normalize(name), new List<string>());
             return findCellsToRecalculate(toRecalculate, normalize(name));
         }
 
@@ -341,15 +342,16 @@ namespace SS
         {
             isNameValid(name);
             bool previouslyUnchanged;
+            object? oldContents        = null;
+            object? oldValue           = null;
+            DependencyGraph oldSS      = cellRelationships;
+            List<string> toRecalculate = new List<string>();
+
             if (Changed == false)
                 previouslyUnchanged = true;
             else
                 previouslyUnchanged = false;
 
-            object? oldContents        = null;
-            object? oldValue           = null;
-            DependencyGraph oldSS      = spreadsheet;
-            List<string> toRecalculate = new List<string>();
             if (!cells.TryGetValue(normalize(name), out Cell? cell))
             {
                 cells.Add(normalize(name), new Cell(normalize(name), formula, calculateCellvalue(formula)));
@@ -363,12 +365,12 @@ namespace SS
 
             try
             {
-                spreadsheet.ReplaceDependees(normalize(name), formula.GetVariables());
+                cellRelationships.ReplaceDependees(normalize(name), formula.GetVariables());
                 return findCellsToRecalculate(toRecalculate, normalize(name));
             }
             catch
             {
-                spreadsheet = oldSS;
+                cellRelationships = oldSS;
                 if (oldContents == null)
                     cells.Remove(name);
                 else
@@ -411,8 +413,8 @@ namespace SS
             isNameValid(name);
 
             List<string> dependents = new List<string>();
-            if (spreadsheet.HasDependents(normalize(name)))
-                dependents = spreadsheet.GetDependents(normalize(name)).ToList();
+            if (cellRelationships.HasDependents(normalize(name)))
+                dependents = cellRelationships.GetDependents(normalize(name)).ToList();
 
             return dependents;
         }
@@ -491,19 +493,19 @@ namespace SS
             if (Double.TryParse(content, out double number))
             {
                 IList<string> returnList = SetCellContents(name, number);
-                recalculateCell(returnList);
+                recalculateCells(returnList);
                 return returnList;
             }
             else if (content.Length != 0 && content[0] == '=')
             {
                 IList<string> returnList = SetCellContents(name, new Formula(content.Substring(1), normalize, isValid));
-                recalculateCell(returnList);
+                recalculateCells(returnList);
                 return returnList;
             }
             else
             {
                 IList<string> returnList = SetCellContents(name, content);
-                recalculateCell(returnList);
+                recalculateCells(returnList);
                 return returnList;
             }
         }
@@ -645,11 +647,11 @@ namespace SS
         /// <summary>
         /// Determines if the given string is a variable
         /// </summary>
-        /// <param name="token"></param> the given string
+        /// <param name="possibleVar"></param> the given string
         /// <returns></returns> true or false
-        private bool isVar(string token)
+        private bool isVar(string possibleVar)
         {
-            if (Regex.IsMatch(token, @"^[a-zA-Z](?: [a-zA-Z]|\d)*"))
+            if (Regex.IsMatch(possibleVar, @"^[a-zA-Z](?: [a-zA-Z]|\d)*"))
                 return true;
             return false;
         }
@@ -657,14 +659,14 @@ namespace SS
         /// <summary>
         /// Determines if the given name is valid (determined by isVar and the IsValid delegate).
         /// </summary>
-        /// <param name="checkName"></param> the name being checked
+        /// <param name="nameToCheck"></param> the name being checked
         /// <exception cref="InvalidNameException"></exception> If the name is not of a valid form, then 
         /// throw this exception
-        private void isNameValid(string checkName)
+        private void isNameValid(string nameToCheck)
         {
-            if (!isVar(checkName))
+            if (!isVar(nameToCheck))
                 throw new InvalidNameException();
-            if (!isValid(normalize(checkName)))
+            if (!isValid(normalize(nameToCheck)))
                 throw new InvalidNameException();
         }
 
@@ -761,8 +763,11 @@ namespace SS
             return newValue;
         }
 
-
-        private void recalculateCell(IList<string> cellList)
+        /// <summary>
+        /// Recalculates all cells that depended on a cell that was recently changed
+        /// </summary>
+        /// <param name="cellList">The list of cells that depended on the recently changed cell</param>
+        private void recalculateCells(IList<string> cellList)
         {
             foreach (string cellName in cellList)
             {
