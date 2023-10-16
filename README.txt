@@ -1,11 +1,9 @@
-**Author:** Hunter Keating
+**Author:** Hunter Keating and Nathaniel Taylor
 **Date Created:** 01/14/2023
 **Course:** CS 3500, University of Utah, School of Computing
-**GitHub ID:** NSwimer1321
+**GitHub ID:** hkeating27
 **Repo:** https://github.com/uofu-cs3500-spring23/spreadsheet-NSwimer1321
-**Date of Last Submission:** 02/17/2023 Time: 2:40 pm
 **Solution:** Spreadsheet
-**Copyright:** CS 3500 and Nathaniel Taylor - This work may not be copied for use in Academic Coursework
 
 
 **Overview of Spreadsheet Functionality:**
@@ -26,13 +24,13 @@ Lastly, the Spreadsheet can create a spreadsheet from a file, it can Save a spre
 version information from a file (if that file is a spreadsheet).
 
 **Examples of Good Software Practices(GSP):**
-I am getting much better at good seperation of concerns. It's something that took me a bit to remember and start
+Hunter: I am getting much better at good seperation of concerns. It's something that took me a bit to remember and start
 doing again when the semester started, but now I think I am doing well at it. An example in my code would be in
 the Spreadsheet assignment with my IsVar and HasExceptions helper methods. The only place IsVar is ever used is
 in the HasExceptions method, but HasExceptions doesn't need to know what makes a valid name, so rather than
 put the IsVar code into the HasExceptions method I just made a new helper method and put it in there.
 
-I also have improved my testing strategies. This is most evident in my assignment four unit tests. I use several 
+Nathaniel: I also have improved my testing strategies. This is most evident in my assignment four unit tests. I use several 
 different inputs, my tests hit almost every line of code (there are a few lines that are impossible to hit by
 design of the assignment), the names of my tests do a good job of describing the test, and every test tests
 every possible way the thing it is testing could fail.
