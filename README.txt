@@ -1,4 +1,4 @@
-**Authors:** Hunter Keating
+**Author:** Hunter Keating
 **Date Created:** 01/14/2023
 **Course:** CS 3500, University of Utah, School of Computing
 **GitHub ID:** NSwimer1321
