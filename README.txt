@@ -1,5 +1,4 @@
-**Author:** Nathaniel Taylor
-**Partner:** None
+**Authors:** Hunter Keating
 **Date Created:** 01/14/2023
 **Course:** CS 3500, University of Utah, School of Computing
 **GitHub ID:** NSwimer1321
@@ -33,13 +32,6 @@ the Spreadsheet assignment with my IsVar and HasExceptions helper methods. The o
 in the HasExceptions method, but HasExceptions doesn't need to know what makes a valid name, so rather than
 put the IsVar code into the HasExceptions method I just made a new helper method and put it in there.
 
-Part of writing DRY code is writing short helper methods, which is something I am usually pretty good at. I did
-it a few times in the third and fourth assignments, so I am definitely improving at it as the semester goes along.
-An example in my code would be in assignment three (and one) with my addOrSubtract and multiplyOrDivide helper
-methods. These helper methods are around ten lines each and are only used in the Evaluate method. However, they
-are used a combined total of five times, so if I had not made them into their own methods, then I would have
-had used fifty lines of code rather than twenty.
-
 I also have improved my testing strategies. This is most evident in my assignment four unit tests. I use several 
 different inputs, my tests hit almost every line of code (there are a few lines that are impossible to hit by
 design of the assignment), the names of my tests do a good job of describing the test, and every test tests
@@ -70,12 +62,6 @@ every possible way the thing it is testing could fail.
 **Assign 05 Time Spent Towards Completion:** 6.5
 **Assign 05 Time Spent Debugging:** 5
 **Assign 05 Time Spent Learning Techniques:** 1.5
-
-I think that my estimation skills are fairly accurate. I'm usually either off by 0-1 hours (with the exception of assignment 02).
-However, I did seem to have a problem on the 5th assignment with debugging. Part of this was I tried to debug the XML methods without
-fully understanding how the XML methods work. Once I did took some time watching a video and reading the Microsoft documentation, I was
-able to debug those methods quite quickly. In the future I think that I'll just do the learning before I spend several hours trying to debug
-something I don't fully understand.
 
 
 
